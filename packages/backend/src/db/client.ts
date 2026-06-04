@@ -27,13 +27,30 @@ export function createDb(dbPath?: string): Database.Database {
 export function runMigrations(instance: Database.Database): void {
   const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
   instance.exec(schema);
+
+  // Migrate existing databases: replace monthly_amount with amount + billing_interval
+  const hasOldColumn = instance
+    .prepare<[], { name: string }>(`PRAGMA table_info(contracts)`)
+    .all()
+    .some((col) => col.name === 'monthly_amount');
+
+  if (hasOldColumn) {
+    instance.exec(`
+      ALTER TABLE contracts ADD COLUMN amount REAL NOT NULL DEFAULT 0.0;
+      ALTER TABLE contracts ADD COLUMN billing_interval TEXT NOT NULL DEFAULT 'MONTHLY'
+        CHECK(billing_interval IN ('WEEKLY','MONTHLY','QUARTERLY','YEARLY','LIFETIME'));
+      UPDATE contracts SET amount = monthly_amount;
+      ALTER TABLE contracts DROP COLUMN monthly_amount;
+    `);
+  }
 }
 
 export interface ContractRow {
   id: string;
   name: string;
   category: string;
-  monthly_amount: number;
+  amount: number;
+  billing_interval: string;
   status: string;
   end_date: string | null;
   created_at: string;

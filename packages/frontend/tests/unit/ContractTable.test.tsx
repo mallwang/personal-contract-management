@@ -10,7 +10,8 @@ const sampleContracts: ContractData[] = [
     id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
     name: 'Netflix',
     category: 'SUBSCRIPTIONS',
-    monthlyAmount: 15.99,
+    amount: 15.99,
+    billingInterval: 'MONTHLY',
     status: 'ACTIVE',
     endDate: '2026-12-31',
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -20,7 +21,8 @@ const sampleContracts: ContractData[] = [
     id: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
     name: 'Rent',
     category: 'HOUSING',
-    monthlyAmount: 1200,
+    amount: 1200,
+    billingInterval: 'MONTHLY',
     status: 'INACTIVE',
     endDate: null,
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -37,10 +39,25 @@ describe('ContractTable – data display', () => {
     expect(screen.getByText('Rent')).toBeInTheDocument();
   });
 
-  it('displays the monthly amount for each contract', () => {
+  it('displays the amount and interval label for each contract', () => {
     render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
-    expect(screen.getByText(/15\.99/)).toBeInTheDocument();
-    expect(screen.getByText(/1[,.]?200/)).toBeInTheDocument();
+    expect(screen.getByText(/15\.99.*Monthly|Monthly.*15\.99/)).toBeInTheDocument();
+    expect(screen.getByText(/1[,.]?200.*Monthly|Monthly.*1[,.]?200/)).toBeInTheDocument();
+  });
+
+  it('shows the interval label in the column header', () => {
+    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    expect(screen.getByText(/amount.*interval/i)).toBeInTheDocument();
+  });
+
+  it('displays Quarterly label for a quarterly contract', () => {
+    const quarterly: ContractData[] = [{
+      ...sampleContracts[0]!,
+      amount: 30,
+      billingInterval: 'QUARTERLY',
+    }];
+    render(<MemoryRouter><ContractTable contracts={quarterly} onDelete={vi.fn()} /></MemoryRouter>);
+    expect(screen.getByText(/30.*Quarterly|Quarterly.*30/)).toBeInTheDocument();
   });
 
   it('displays the status for each contract', () => {

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Category, ContractStatus, CATEGORY_LABELS } from '@pcm/shared';
+import { Category, ContractStatus, BillingInterval, CATEGORY_LABELS, BILLING_INTERVAL_LABELS } from '@pcm/shared';
 import type { CreateContractBody } from '@pcm/shared';
 
 interface ContractFormValues {
   name: string;
   category: string;
-  monthlyAmount: string;
+  amount: string;
+  billingInterval: string;
   status: string;
   endDate: string;
 }
@@ -30,7 +31,8 @@ export function ContractForm({
   const [values, setValues] = useState<ContractFormValues>({
     name: defaultValues?.name ?? '',
     category: defaultValues?.category ?? Category.SUBSCRIPTIONS,
-    monthlyAmount: defaultValues?.monthlyAmount ?? '',
+    amount: defaultValues?.amount ?? '',
+    billingInterval: defaultValues?.billingInterval ?? BillingInterval.MONTHLY,
     status: defaultValues?.status ?? ContractStatus.ACTIVE,
     endDate: defaultValues?.endDate ?? '',
   });
@@ -44,16 +46,17 @@ export function ContractForm({
       setValidationError('Name is required.');
       return;
     }
-    const amount = parseFloat(values.monthlyAmount);
+    const amount = parseFloat(values.amount);
     if (isNaN(amount) || amount < 0) {
-      setValidationError('Monthly amount must be a non-negative number.');
+      setValidationError('Amount must be a non-negative number.');
       return;
     }
 
     onSubmit({
       name: values.name.trim(),
       category: values.category as CreateContractBody['category'],
-      monthlyAmount: amount,
+      amount,
+      billingInterval: values.billingInterval as CreateContractBody['billingInterval'],
       status: values.status as CreateContractBody['status'],
       endDate: values.endDate || null,
     });
@@ -113,18 +116,35 @@ export function ContractForm({
       )}
 
       {field(
-        'monthlyAmount',
-        'Monthly Amount *',
+        'amount',
+        'Amount *',
         <input
-          id="monthlyAmount"
+          id="amount"
           type="number"
           min="0"
           step="0.01"
-          value={values.monthlyAmount}
-          onChange={(e) => setValues((v) => ({ ...v, monthlyAmount: e.target.value }))}
+          value={values.amount}
+          onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))}
           className="rounded border px-3 py-1.5 text-sm"
           placeholder="0.00"
         />,
+      )}
+
+      {field(
+        'billingInterval',
+        'Billing Interval *',
+        <select
+          id="billingInterval"
+          value={values.billingInterval}
+          onChange={(e) => setValues((v) => ({ ...v, billingInterval: e.target.value }))}
+          className="rounded border px-3 py-1.5 text-sm"
+        >
+          {Object.entries(BILLING_INTERVAL_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>,
       )}
 
       {field(

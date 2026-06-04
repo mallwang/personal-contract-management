@@ -15,14 +15,14 @@ function addDays(days: number): string {
 const SEED_CREATED_AT = '2026-01-01T00:00:00.000Z';
 
 const seeds = [
-  { id: '00000000-0000-0000-0000-000000000001', name: 'Rent',          category: 'HOUSING',       monthly_amount: 1200.0, status: 'ACTIVE',   end_date: null },
-  { id: '00000000-0000-0000-0000-000000000002', name: 'Electricity',   category: 'UTILITIES',     monthly_amount:   55.0, status: 'ACTIVE',   end_date: null },
-  { id: '00000000-0000-0000-0000-000000000003', name: 'Internet',      category: 'UTILITIES',     monthly_amount:   35.0, status: 'ACTIVE',   end_date: null },
-  { id: '00000000-0000-0000-0000-000000000004', name: 'Netflix',       category: 'SUBSCRIPTIONS', monthly_amount:   15.99, status: 'ACTIVE',  end_date: () => addDays(15) },
-  { id: '00000000-0000-0000-0000-000000000005', name: 'Spotify',       category: 'SUBSCRIPTIONS', monthly_amount:   10.99, status: 'ACTIVE',  end_date: null },
-  { id: '00000000-0000-0000-0000-000000000006', name: 'GitHub Copilot',category: 'SUBSCRIPTIONS', monthly_amount:   19.0, status: 'ACTIVE',   end_date: null },
-  { id: '00000000-0000-0000-0000-000000000007', name: 'Adobe CC',      category: 'SUBSCRIPTIONS', monthly_amount:   11.52, status: 'ACTIVE',  end_date: null },
-  { id: '00000000-0000-0000-0000-000000000008', name: 'Old gym',       category: 'OTHER',         monthly_amount:   30.0, status: 'INACTIVE', end_date: null },
+  { id: '00000000-0000-0000-0000-000000000001', name: 'Rent',          category: 'HOUSING',       amount: 1200.0, billing_interval: 'MONTHLY',   status: 'ACTIVE',   end_date: null },
+  { id: '00000000-0000-0000-0000-000000000002', name: 'Electricity',   category: 'UTILITIES',     amount:   55.0, billing_interval: 'MONTHLY',   status: 'ACTIVE',   end_date: null },
+  { id: '00000000-0000-0000-0000-000000000003', name: 'Internet',      category: 'UTILITIES',     amount:   35.0, billing_interval: 'MONTHLY',   status: 'ACTIVE',   end_date: null },
+  { id: '00000000-0000-0000-0000-000000000004', name: 'Netflix',       category: 'SUBSCRIPTIONS', amount:   15.99, billing_interval: 'MONTHLY',  status: 'ACTIVE',   end_date: () => addDays(15) },
+  { id: '00000000-0000-0000-0000-000000000005', name: 'Spotify',       category: 'SUBSCRIPTIONS', amount:   10.99, billing_interval: 'MONTHLY',  status: 'ACTIVE',   end_date: null },
+  { id: '00000000-0000-0000-0000-000000000006', name: 'GitHub Copilot',category: 'SUBSCRIPTIONS', amount:   19.0,  billing_interval: 'MONTHLY',  status: 'ACTIVE',   end_date: null },
+  { id: '00000000-0000-0000-0000-000000000007', name: 'Adobe CC',      category: 'SUBSCRIPTIONS', amount:   46.08, billing_interval: 'QUARTERLY', status: 'ACTIVE',  end_date: null },
+  { id: '00000000-0000-0000-0000-000000000008', name: 'Old gym',       category: 'OTHER',         amount:   30.0, billing_interval: 'MONTHLY',   status: 'INACTIVE', end_date: null },
 ];
 
 function runSeed(db: Database.Database, { force = false } = {}): void {
@@ -32,15 +32,16 @@ function runSeed(db: Database.Database, { force = false } = {}): void {
     return;
   }
   const upsert = db.prepare(`
-    INSERT INTO contracts (id, name, category, monthly_amount, status, end_date, created_at, updated_at)
-    VALUES (@id, @name, @category, @monthly_amount, @status, @end_date, @created_at, @updated_at)
+    INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at)
+    VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at)
     ON CONFLICT(id) DO UPDATE SET
-      name           = excluded.name,
-      category       = excluded.category,
-      monthly_amount = excluded.monthly_amount,
-      status         = excluded.status,
-      end_date       = excluded.end_date,
-      updated_at     = excluded.updated_at
+      name             = excluded.name,
+      category         = excluded.category,
+      amount           = excluded.amount,
+      billing_interval = excluded.billing_interval,
+      status           = excluded.status,
+      end_date         = excluded.end_date,
+      updated_at       = excluded.updated_at
   `);
   const upsertMany = db.transaction(() => {
     for (const row of seeds) {
@@ -48,7 +49,8 @@ function runSeed(db: Database.Database, { force = false } = {}): void {
         id: row.id,
         name: row.name,
         category: row.category,
-        monthly_amount: row.monthly_amount,
+        amount: row.amount,
+        billing_interval: row.billing_interval,
         status: row.status,
         end_date: typeof row.end_date === 'function' ? row.end_date() : row.end_date,
         created_at: SEED_CREATED_AT,

@@ -9,7 +9,7 @@ test.describe('Contract List & CRUD', () => {
     await expect(page.getByRole('heading', { name: /contracts/i })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: /name/i })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: /category/i })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: /monthly/i })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: /amount.*interval/i })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: /status/i })).toBeVisible();
   });
 
@@ -25,24 +25,53 @@ test.describe('Contract List & CRUD', () => {
     await expect(page).toHaveURL(/\/contracts/);
   });
 
-  test('US2 – create a new contract and see it in the list', async ({ page }) => {
+  test('US2 – create a new contract with MONTHLY interval and see it in the list', async ({ page }) => {
     const uniqueName = `Test Contract ${Date.now()}`;
 
     await page.getByRole('link', { name: /add contract/i }).click();
     await expect(page).toHaveURL(/\/contracts\/new/);
     await expect(page.getByRole('heading', { name: /add contract/i })).toBeVisible();
 
-    await page.getByLabel(/name/i).fill(uniqueName);
-    await page.getByLabel(/monthly amount/i).fill('29.99');
+    await page.getByLabel(/^name/i).fill(uniqueName);
+    await page.getByLabel(/^amount/i).fill('29.99');
+    await page.getByLabel(/billing interval/i).selectOption('MONTHLY');
     await page.getByRole('button', { name: /add contract/i }).click();
 
     await expect(page).toHaveURL(/\/contracts$/);
-    await expect(page.getByText(uniqueName)).toBeVisible();
+    const row = page.locator('tr').filter({ hasText: uniqueName });
+    await expect(row.getByText(/29\.99/)).toBeVisible();
+    await expect(row.getByText(/Monthly/)).toBeVisible();
+  });
+
+  test('US2 – create a contract with QUARTERLY interval and see interval label in list', async ({ page }) => {
+    const uniqueName = `Quarterly ${Date.now()}`;
+
+    await page.getByRole('link', { name: /add contract/i }).click();
+    await page.getByLabel(/^name/i).fill(uniqueName);
+    await page.getByLabel(/^amount/i).fill('60');
+    await page.getByLabel(/billing interval/i).selectOption('QUARTERLY');
+    await page.getByRole('button', { name: /add contract/i }).click();
+
+    await expect(page).toHaveURL(/\/contracts$/);
+    const quarterlyRow = page.locator('tr').filter({ hasText: uniqueName });
+    await expect(quarterlyRow).toBeVisible();
+    // The interval cell shows "60.00 / Quarterly" — check the amount column specifically
+    await expect(quarterlyRow.getByRole('cell', { name: /\/\s*Quarterly/ })).toBeVisible();
+  });
+
+  test('US2 – billing interval selector has all 5 options', async ({ page }) => {
+    await page.getByRole('link', { name: /add contract/i }).click();
+    const select = page.getByLabel(/billing interval/i);
+    await expect(select.locator('option[value="WEEKLY"]')).toBeAttached();
+    await expect(select.locator('option[value="MONTHLY"]')).toBeAttached();
+    await expect(select.locator('option[value="QUARTERLY"]')).toBeAttached();
+    await expect(select.locator('option[value="YEARLY"]')).toBeAttached();
+    await expect(select.locator('option[value="LIFETIME"]')).toBeAttached();
   });
 
   test('US2 – create form shows validation error when name is empty', async ({ page }) => {
     await page.getByRole('link', { name: /add contract/i }).click();
-    await page.getByLabel(/monthly amount/i).fill('10');
+    await page.getByLabel(/^amount/i).fill('10');
     await page.getByRole('button', { name: /add contract/i }).click();
     await expect(page.getByRole('alert')).toBeVisible();
     await expect(page).toHaveURL(/\/contracts\/new/);
@@ -54,62 +83,57 @@ test.describe('Contract List & CRUD', () => {
     await expect(page).toHaveURL(/\/contracts$/);
   });
 
-  test('US3 – edit a contract and see the updated value', async ({ page }) => {
-    // First create a contract to edit
+  test('US3 – edit a contract and update amount', async ({ page }) => {
     const uniqueName = `Edit Me ${Date.now()}`;
     await page.getByRole('link', { name: /add contract/i }).click();
-    await page.getByLabel(/name/i).fill(uniqueName);
-    await page.getByLabel(/monthly amount/i).fill('10');
+    await page.getByLabel(/^name/i).fill(uniqueName);
+    await page.getByLabel(/^amount/i).fill('10');
+    await page.getByLabel(/billing interval/i).selectOption('MONTHLY');
     await page.getByRole('button', { name: /add contract/i }).click();
     await expect(page).toHaveURL(/\/contracts$/);
 
-    // Click Edit on the newly created contract
-    const row = page.getByRole('row', { name: new RegExp(uniqueName) });
+    const row = page.locator('tr').filter({ hasText: uniqueName });
     await row.getByRole('link', { name: /edit/i }).click();
     await expect(page).toHaveURL(/\/contracts\/.+\/edit/);
     await expect(page.getByRole('heading', { name: /edit contract/i })).toBeVisible();
 
-    // Update monthly amount
-    await page.getByLabel(/monthly amount/i).clear();
-    await page.getByLabel(/monthly amount/i).fill('99.99');
+    await page.getByLabel(/^amount/i).clear();
+    await page.getByLabel(/^amount/i).fill('99.99');
+    await page.getByLabel(/billing interval/i).selectOption('YEARLY');
     await page.getByRole('button', { name: /save changes/i }).click();
 
     await expect(page).toHaveURL(/\/contracts$/);
-    const updatedRow = page.getByRole('row', { name: new RegExp(uniqueName) });
+    const updatedRow = page.locator('tr').filter({ hasText: uniqueName });
     await expect(updatedRow.getByText(/99\.99/)).toBeVisible();
+    await expect(updatedRow.getByText(/Yearly/)).toBeVisible();
   });
 
   test('US4 – delete contract with Cancel keeps it in the list', async ({ page }) => {
     const uniqueName = `Delete Cancel ${Date.now()}`;
     await page.getByRole('link', { name: /add contract/i }).click();
-    await page.getByLabel(/name/i).fill(uniqueName);
-    await page.getByLabel(/monthly amount/i).fill('5');
+    await page.getByLabel(/^name/i).fill(uniqueName);
+    await page.getByLabel(/^amount/i).fill('5');
     await page.getByRole('button', { name: /add contract/i }).click();
     await expect(page).toHaveURL(/\/contracts$/);
 
-    const row = page.getByRole('row', { name: new RegExp(uniqueName) });
+    const row = page.locator('tr').filter({ hasText: uniqueName });
     await row.getByRole('button', { name: /delete/i }).click();
-    // Confirm button should appear
     await expect(row.getByRole('button', { name: /confirm/i })).toBeVisible();
-    // Click Cancel
     await row.getByRole('button', { name: /cancel/i }).click();
-    // Contract should still be visible
     await expect(page.getByText(uniqueName)).toBeVisible();
   });
 
   test('US4 – delete contract with Confirm removes it from the list', async ({ page }) => {
     const uniqueName = `Delete Me ${Date.now()}`;
     await page.getByRole('link', { name: /add contract/i }).click();
-    await page.getByLabel(/name/i).fill(uniqueName);
-    await page.getByLabel(/monthly amount/i).fill('5');
+    await page.getByLabel(/^name/i).fill(uniqueName);
+    await page.getByLabel(/^amount/i).fill('5');
     await page.getByRole('button', { name: /add contract/i }).click();
     await expect(page).toHaveURL(/\/contracts$/);
 
-    const row = page.getByRole('row', { name: new RegExp(uniqueName) });
+    const row = page.locator('tr').filter({ hasText: uniqueName });
     await row.getByRole('button', { name: /delete/i }).click();
     await row.getByRole('button', { name: /confirm/i }).click();
-
-    // Contract should no longer appear
     await expect(page.getByText(uniqueName)).not.toBeVisible({ timeout: 5000 });
   });
 });

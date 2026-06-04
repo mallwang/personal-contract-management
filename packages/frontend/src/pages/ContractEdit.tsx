@@ -46,7 +46,8 @@ export function ContractEdit() {
             defaultValues={{
               name: contract.name,
               category: contract.category,
-              monthlyAmount: String(contract.monthlyAmount),
+              amount: String(contract.amount),
+              billingInterval: contract.billingInterval,
               status: contract.status,
               endDate: contract.endDate ?? '',
             }}

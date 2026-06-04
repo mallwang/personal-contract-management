@@ -12,7 +12,8 @@ const sampleContract: ContractData = {
   id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   name: 'Netflix',
   category: 'SUBSCRIPTIONS',
-  monthlyAmount: 15.99,
+  amount: 15.99,
+  billingInterval: 'MONTHLY',
   status: 'ACTIVE',
   endDate: null,
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -69,6 +70,8 @@ describe('ContractEdit', () => {
       expect(screen.getByDisplayValue('Netflix')).toBeInTheDocument(),
     );
     expect(screen.getByDisplayValue('15.99')).toBeInTheDocument();
+    const intervalSelect = screen.getByLabelText(/billing interval/i) as HTMLSelectElement;
+    expect(intervalSelect.value).toBe('MONTHLY');
   });
 
   it('shows not found message when the contract ID does not exist in the list', async () => {

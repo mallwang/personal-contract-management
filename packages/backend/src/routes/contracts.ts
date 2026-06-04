@@ -34,7 +34,9 @@ export async function contractRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.put('/api/contracts/:id', async (request, reply) => {
     const params = IdParams.safeParse(request.params);
     if (!params.success) {
-      return reply.status(400).send({ statusCode: 400, error: 'Bad Request', message: 'Invalid ID' });
+      return reply
+        .status(400)
+        .send({ statusCode: 400, error: 'Bad Request', message: 'Invalid ID' });
     }
 
     const rawBody = request.body as Record<string, unknown>;
@@ -58,7 +60,9 @@ export async function contractRoutes(fastify: FastifyInstance): Promise<void> {
     const service = new ContractService(fastify.db);
     const updated = service.update(params.data.id, body.data);
     if (!updated) {
-      return reply.status(404).send({ statusCode: 404, error: 'Not Found', message: 'Contract not found' });
+      return reply
+        .status(404)
+        .send({ statusCode: 404, error: 'Not Found', message: 'Contract not found' });
     }
     return reply.send(ContractSchema.parse(updated));
   });
@@ -66,12 +70,16 @@ export async function contractRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.delete('/api/contracts/:id', async (request, reply) => {
     const params = IdParams.safeParse(request.params);
     if (!params.success) {
-      return reply.status(400).send({ statusCode: 400, error: 'Bad Request', message: 'Invalid ID' });
+      return reply
+        .status(400)
+        .send({ statusCode: 400, error: 'Bad Request', message: 'Invalid ID' });
     }
     const service = new ContractService(fastify.db);
     const deleted = service.delete(params.data.id);
     if (!deleted) {
-      return reply.status(404).send({ statusCode: 404, error: 'Not Found', message: 'Contract not found' });
+      return reply
+        .status(404)
+        .send({ statusCode: 404, error: 'Not Found', message: 'Contract not found' });
     }
     return reply.status(204).send();
   });

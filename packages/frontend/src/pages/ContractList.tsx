@@ -32,9 +32,7 @@ export function ContractList() {
           </p>
         )}
 
-        {isLoading && (
-          <p className="py-8 text-center text-[--color-muted-foreground]">Loading…</p>
-        )}
+        {isLoading && <p className="py-8 text-center text-[--color-muted-foreground]">Loading…</p>}
 
         {isError && (
           <p className="py-8 text-center text-red-600">

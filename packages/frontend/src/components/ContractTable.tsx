@@ -68,10 +68,7 @@ export function ContractTable({ contracts, onDelete }: ContractTableProps) {
                   </span>
                 ) : (
                   <span className="inline-flex gap-3">
-                    <Link
-                      to={`/contracts/${contract.id}/edit`}
-                      className="hover:underline"
-                    >
+                    <Link to={`/contracts/${contract.id}/edit`} className="hover:underline">
                       Edit
                     </Link>
                     <button

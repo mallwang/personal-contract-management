@@ -27,7 +27,10 @@ export function UpcomingRenewals({ upcomingRenewals }: UpcomingRenewalsProps) {
         ) : (
           <ul className="upcoming-renewals__list divide-y divide-[--color-border]">
             {upcomingRenewals.map((renewal) => (
-              <li key={renewal.id} className="upcoming-renewals__item flex items-center justify-between py-3 first:pt-0 last:pb-0">
+              <li
+                key={renewal.id}
+                className="upcoming-renewals__item flex items-center justify-between py-3 first:pt-0 last:pb-0"
+              >
                 <div className="flex flex-col gap-0.5">
                   <span className="upcoming-renewals__name font-medium">{renewal.name}</span>
                   <span className="upcoming-renewals__category text-xs text-[--color-muted-foreground]">

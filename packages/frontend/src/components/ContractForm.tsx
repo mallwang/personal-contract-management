@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { Category, ContractStatus, BillingInterval, CATEGORY_LABELS, BILLING_INTERVAL_LABELS } from '@pcm/shared';
+import {
+  Category,
+  ContractStatus,
+  BillingInterval,
+  CATEGORY_LABELS,
+  BILLING_INTERVAL_LABELS,
+} from '@pcm/shared';
 import type { CreateContractBody } from '@pcm/shared';
 
 interface ContractFormValues {
@@ -62,11 +68,7 @@ export function ContractForm({
     });
   }
 
-  function field(
-    id: string,
-    label: string,
-    input: React.ReactNode,
-  ) {
+  function field(id: string, label: string, input: React.ReactNode) {
     return (
       <div className="flex flex-col gap-1">
         <label htmlFor={id} className="text-sm font-medium">
@@ -80,7 +82,10 @@ export function ContractForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {(validationError ?? error) && (
-        <p role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {validationError ?? error}
         </p>
       )}

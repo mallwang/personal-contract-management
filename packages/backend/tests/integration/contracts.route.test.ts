@@ -59,7 +59,12 @@ describe('GET /api/contracts', () => {
   });
 
   it('returns all contracts with correct camelCase fields', async () => {
-    insertContract(db, { name: 'Netflix', amount: 15.99, billing_interval: 'MONTHLY', category: 'SUBSCRIPTIONS' });
+    insertContract(db, {
+      name: 'Netflix',
+      amount: 15.99,
+      billing_interval: 'MONTHLY',
+      category: 'SUBSCRIPTIONS',
+    });
     const res = await app.inject({ method: 'GET', url: '/api/contracts' });
     expect(res.statusCode).toBe(200);
     const body = res.json<Array<Record<string, unknown>>>();
@@ -146,7 +151,12 @@ describe('POST /api/contracts', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/contracts',
-      payload: { category: 'SUBSCRIPTIONS', amount: 10, billingInterval: 'MONTHLY', status: 'ACTIVE' },
+      payload: {
+        category: 'SUBSCRIPTIONS',
+        amount: 10,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
     });
     expect(res.statusCode).toBe(400);
   });
@@ -164,7 +174,13 @@ describe('POST /api/contracts', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/contracts',
-      payload: { name: 'Bad', category: 'OTHER', amount: -5, billingInterval: 'MONTHLY', status: 'ACTIVE' },
+      payload: {
+        name: 'Bad',
+        category: 'OTHER',
+        amount: -5,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
     });
     expect(res.statusCode).toBe(400);
   });
@@ -173,7 +189,13 @@ describe('POST /api/contracts', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/contracts',
-      payload: { name: 'Bad', category: 'OTHER', amount: 10, billingInterval: 'DAILY', status: 'ACTIVE' },
+      payload: {
+        name: 'Bad',
+        category: 'OTHER',
+        amount: 10,
+        billingInterval: 'DAILY',
+        status: 'ACTIVE',
+      },
     });
     expect(res.statusCode).toBe(400);
   });
@@ -191,7 +213,13 @@ describe('POST /api/contracts', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/contracts',
-      payload: { name: 'Bad', category: 'INVALID', amount: 10, billingInterval: 'MONTHLY', status: 'ACTIVE' },
+      payload: {
+        name: 'Bad',
+        category: 'INVALID',
+        amount: 10,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
     });
     expect(res.statusCode).toBe(400);
   });

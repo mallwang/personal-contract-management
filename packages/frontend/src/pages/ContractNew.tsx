@@ -14,9 +14,7 @@ export function ContractNew() {
         </header>
         <div className="rounded-lg bg-background p-6 shadow-sm">
           <ContractForm
-            onSubmit={(data) =>
-              createContract(data, { onSuccess: () => navigate('/contracts') })
-            }
+            onSubmit={(data) => createContract(data, { onSuccess: () => navigate('/contracts') })}
             onCancel={() => navigate('/contracts')}
             submitLabel="Add Contract"
             isPending={isPending}

@@ -31,9 +31,14 @@ function createWrapper(initialPath: string) {
       createElement(
         MemoryRouter,
         { initialEntries: [initialPath] },
-        createElement(Routes, null,
+        createElement(
+          Routes,
+          null,
           createElement(Route, { path: '/contracts/:id/edit', element: children }),
-          createElement(Route, { path: '/contracts', element: createElement('div', null, 'contract list') }),
+          createElement(Route, {
+            path: '/contracts',
+            element: createElement('div', null, 'contract list'),
+          }),
         ),
       ),
     );
@@ -66,9 +71,7 @@ describe('ContractEdit', () => {
       wrapper: createWrapper(`/contracts/${sampleContract.id}/edit`),
     });
 
-    await waitFor(() =>
-      expect(screen.getByDisplayValue('Netflix')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByDisplayValue('Netflix')).toBeInTheDocument());
     expect(screen.getByDisplayValue('15.99')).toBeInTheDocument();
     const intervalSelect = screen.getByLabelText(/billing interval/i) as HTMLSelectElement;
     expect(intervalSelect.value).toBe('MONTHLY');
@@ -84,16 +87,20 @@ describe('ContractEdit', () => {
       wrapper: createWrapper(`/contracts/00000000-0000-0000-0000-000000000000/edit`),
     });
 
-    await waitFor(() =>
-      expect(screen.getByText(/contract not found/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/contract not found/i)).toBeInTheDocument());
   });
 
   it('navigates to /contracts after successful save', async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce({ ok: true, json: async () => [sampleContract] } as Response)
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ ...sampleContract, name: 'Updated' }) } as Response)
-      .mockResolvedValueOnce({ ok: true, json: async () => [{ ...sampleContract, name: 'Updated' }] } as Response);
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ ...sampleContract, name: 'Updated' }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [{ ...sampleContract, name: 'Updated' }],
+      } as Response);
 
     const user = userEvent.setup();
     render(<ContractEdit />, {
@@ -103,9 +110,7 @@ describe('ContractEdit', () => {
     await waitFor(() => expect(screen.getByDisplayValue('Netflix')).toBeInTheDocument());
     await user.click(screen.getByRole('button', { name: /save changes/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText('contract list')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText('contract list')).toBeInTheDocument());
   });
 
   it('navigates to /contracts when Cancel is clicked', async () => {
@@ -122,8 +127,6 @@ describe('ContractEdit', () => {
     await waitFor(() => expect(screen.getByDisplayValue('Netflix')).toBeInTheDocument());
     await user.click(screen.getByRole('button', { name: /cancel/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText('contract list')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText('contract list')).toBeInTheDocument());
   });
 });

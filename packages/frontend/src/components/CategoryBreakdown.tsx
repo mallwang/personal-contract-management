@@ -26,13 +26,22 @@ export function CategoryBreakdown({ contractsByCategory }: CategoryBreakdownProp
           <table className="category-breakdown__table w-full text-sm">
             <thead>
               <tr className="border-b border-[--color-border]">
-                <th scope="col" className="pb-2 text-left font-medium text-[--color-muted-foreground]">
+                <th
+                  scope="col"
+                  className="pb-2 text-left font-medium text-[--color-muted-foreground]"
+                >
                   Category
                 </th>
-                <th scope="col" className="pb-2 text-center font-medium text-[--color-muted-foreground]">
+                <th
+                  scope="col"
+                  className="pb-2 text-center font-medium text-[--color-muted-foreground]"
+                >
                   Contracts
                 </th>
-                <th scope="col" className="pb-2 text-right font-medium text-[--color-muted-foreground]">
+                <th
+                  scope="col"
+                  className="pb-2 text-right font-medium text-[--color-muted-foreground]"
+                >
                   Monthly Total
                 </th>
               </tr>

@@ -101,11 +101,33 @@ describe('GET /api/dashboard', () => {
   });
 
   it('returns contractsByCategory grouped by category with normalized totals', async () => {
-    insertContract(db, { category: 'HOUSING', amount: 1200, billing_interval: 'MONTHLY', status: 'ACTIVE' });
-    insertContract(db, { category: 'SUBSCRIPTIONS', amount: 15, billing_interval: 'MONTHLY', status: 'ACTIVE' });
-    insertContract(db, { category: 'SUBSCRIPTIONS', amount: 10, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, {
+      category: 'HOUSING',
+      amount: 1200,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
+    insertContract(db, {
+      category: 'SUBSCRIPTIONS',
+      amount: 15,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
+    insertContract(db, {
+      category: 'SUBSCRIPTIONS',
+      amount: 10,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
     const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
-    const body = res.json<{ contractsByCategory: Array<{ category: string; count: number; monthlyTotal: number; label: string }> }>();
+    const body = res.json<{
+      contractsByCategory: Array<{
+        category: string;
+        count: number;
+        monthlyTotal: number;
+        label: string;
+      }>;
+    }>();
     const housing = body.contractsByCategory.find((c) => c.category === 'HOUSING');
     const subs = body.contractsByCategory.find((c) => c.category === 'SUBSCRIPTIONS');
     expect(housing?.count).toBe(1);

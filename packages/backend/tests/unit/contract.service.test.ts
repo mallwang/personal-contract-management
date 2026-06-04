@@ -62,7 +62,12 @@ describe('ContractService – list', () => {
   });
 
   it('maps snake_case columns to camelCase fields', () => {
-    const row = insertContract(db, { name: 'Netflix', amount: 15.99, billing_interval: 'MONTHLY', end_date: '2026-12-31' });
+    const row = insertContract(db, {
+      name: 'Netflix',
+      amount: 15.99,
+      billing_interval: 'MONTHLY',
+      end_date: '2026-12-31',
+    });
     const result = service.list();
     expect(result).toHaveLength(1);
     const contract = result[0]!;
@@ -98,9 +103,7 @@ describe('ContractService – create', () => {
       billingInterval: 'MONTHLY',
       status: 'ACTIVE',
     });
-    expect(result.id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-    );
+    expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     expect(result.name).toBe('Netflix');
     expect(result.amount).toBe(15.99);
     expect(result.billingInterval).toBe('MONTHLY');
@@ -110,7 +113,13 @@ describe('ContractService – create', () => {
   });
 
   it('persists the contract so it appears in list()', () => {
-    service.create({ name: 'Gym', category: 'OTHER', amount: 30, billingInterval: 'MONTHLY', status: 'ACTIVE' });
+    service.create({
+      name: 'Gym',
+      category: 'OTHER',
+      amount: 30,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
     expect(service.list()).toHaveLength(1);
   });
 
@@ -209,7 +218,9 @@ describe('ContractService – update', () => {
   });
 
   it('updates updatedAt timestamp', () => {
-    const row = insertContract(db, { updated_at: '2000-01-01T00:00:00.000Z' } as Parameters<typeof insertContract>[1]);
+    const row = insertContract(db, { updated_at: '2000-01-01T00:00:00.000Z' } as Parameters<
+      typeof insertContract
+    >[1]);
     const updated = service.update(row.id, { amount: 99 })!;
     expect(updated.updatedAt).not.toBe('2000-01-01T00:00:00.000Z');
   });

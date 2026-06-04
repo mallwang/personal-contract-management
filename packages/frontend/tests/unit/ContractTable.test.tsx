@@ -33,51 +33,83 @@ const sampleContracts: ContractData[] = [
 describe('ContractTable – data display', () => {
   it('renders a row for each contract', () => {
     render(
-      <MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>,
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
     );
     expect(screen.getByText('Netflix')).toBeInTheDocument();
     expect(screen.getByText('Rent')).toBeInTheDocument();
   });
 
   it('displays the amount and interval label for each contract', () => {
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/15\.99.*Monthly|Monthly.*15\.99/)).toBeInTheDocument();
     expect(screen.getByText(/1[,.]?200.*Monthly|Monthly.*1[,.]?200/)).toBeInTheDocument();
   });
 
   it('shows the interval label in the column header', () => {
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/amount.*interval/i)).toBeInTheDocument();
   });
 
   it('displays Quarterly label for a quarterly contract', () => {
-    const quarterly: ContractData[] = [{
-      ...sampleContracts[0]!,
-      amount: 30,
-      billingInterval: 'QUARTERLY',
-    }];
-    render(<MemoryRouter><ContractTable contracts={quarterly} onDelete={vi.fn()} /></MemoryRouter>);
+    const quarterly: ContractData[] = [
+      {
+        ...sampleContracts[0]!,
+        amount: 30,
+        billingInterval: 'QUARTERLY',
+      },
+    ];
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={quarterly} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/30.*Quarterly|Quarterly.*30/)).toBeInTheDocument();
   });
 
   it('displays the status for each contract', () => {
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText('ACTIVE')).toBeInTheDocument();
     expect(screen.getByText('INACTIVE')).toBeInTheDocument();
   });
 
   it('displays the end date when set', () => {
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText('2026-12-31')).toBeInTheDocument();
   });
 
   it('displays a dash when end date is null', () => {
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText('—')).toBeInTheDocument();
   });
 
   it('renders an empty-state message when no contracts are provided', () => {
-    render(<MemoryRouter><ContractTable contracts={[]} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={[]} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/no contracts yet/i)).toBeInTheDocument();
   });
 });
@@ -85,7 +117,11 @@ describe('ContractTable – data display', () => {
 describe('ContractTable – inline delete confirmation', () => {
   it('shows Confirm and Cancel buttons after clicking Delete', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     expect(screen.getByRole('button', { name: /confirm/i })).toBeInTheDocument();
@@ -94,7 +130,11 @@ describe('ContractTable – inline delete confirmation', () => {
 
   it('reverts to normal row state after clicking Cancel', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     await user.click(screen.getByRole('button', { name: /cancel/i }));
@@ -104,7 +144,11 @@ describe('ContractTable – inline delete confirmation', () => {
   it('calls onDelete with the correct id after clicking Confirm', async () => {
     const onDelete = vi.fn();
     const user = userEvent.setup();
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={onDelete} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={onDelete} />
+      </MemoryRouter>,
+    );
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     await user.click(screen.getByRole('button', { name: /confirm/i }));
@@ -113,7 +157,11 @@ describe('ContractTable – inline delete confirmation', () => {
 
   it('does not affect other rows while one is in confirmation mode', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ContractTable contracts={sampleContracts} onDelete={vi.fn()} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     // Second row should still have its Delete button

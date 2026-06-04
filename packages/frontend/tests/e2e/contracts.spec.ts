@@ -25,7 +25,9 @@ test.describe('Contract List & CRUD', () => {
     await expect(page).toHaveURL(/\/contracts/);
   });
 
-  test('US2 – create a new contract with MONTHLY interval and see it in the list', async ({ page }) => {
+  test('US2 – create a new contract with MONTHLY interval and see it in the list', async ({
+    page,
+  }) => {
     const uniqueName = `Test Contract ${Date.now()}`;
 
     await page.getByRole('link', { name: /add contract/i }).click();
@@ -43,7 +45,9 @@ test.describe('Contract List & CRUD', () => {
     await expect(row.getByText(/Monthly/)).toBeVisible();
   });
 
-  test('US2 – create a contract with QUARTERLY interval and see interval label in list', async ({ page }) => {
+  test('US2 – create a contract with QUARTERLY interval and see interval label in list', async ({
+    page,
+  }) => {
     const uniqueName = `Quarterly ${Date.now()}`;
 
     await page.getByRole('link', { name: /add contract/i }).click();

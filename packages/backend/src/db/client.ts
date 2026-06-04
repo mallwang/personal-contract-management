@@ -7,7 +7,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let db: Database.Database | null = null;
 
-export function getDb(dbPath = join(__dirname, '../../../../data/contracts.db')): Database.Database {
+export function getDb(
+  dbPath = join(__dirname, '../../../../data/contracts.db'),
+): Database.Database {
   if (!db) {
     mkdirSync(dirname(dbPath), { recursive: true });
     db = new Database(dbPath);

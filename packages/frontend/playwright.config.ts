@@ -8,10 +8,14 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'pnpm --filter @pcm/backend db:migrate && pnpm --filter @pcm/backend db:seed -- --force && pnpm --filter @pcm/backend dev',
+      command:
+        'pnpm --filter @pcm/backend db:migrate && pnpm --filter @pcm/backend db:seed -- --force && pnpm --filter @pcm/backend dev',
       url: 'http://localhost:3001/api/dashboard',
       reuseExistingServer: !process.env['CI'],
-      env: { PORT: '3001', DATABASE_PATH: fileURLToPath(new URL('../../data/test.db', import.meta.url)) },
+      env: {
+        PORT: '3001',
+        DATABASE_PATH: fileURLToPath(new URL('../../data/test.db', import.meta.url)),
+      },
     },
     {
       command: 'pnpm --filter @pcm/frontend dev',

@@ -35,10 +35,7 @@ export class DashboardService {
 
   private getContractsByCategory(): CategorySummary[] {
     const rows = this.db
-      .prepare<
-        [],
-        { category: string; count: number; monthly_total: number }
-      >(
+      .prepare<[], { category: string; count: number; monthly_total: number }>(
         `SELECT category,
                 COUNT(*) AS count,
                 SUM(${MONTHLY_FACTOR_SQL}) AS monthly_total
@@ -59,10 +56,7 @@ export class DashboardService {
 
   private getUpcomingRenewals(): UpcomingRenewal[] {
     const rows = this.db
-      .prepare<
-        [],
-        { id: string; name: string; category: string; end_date: string }
-      >(
+      .prepare<[], { id: string; name: string; category: string; end_date: string }>(
         `SELECT id, name, category, end_date
          FROM contracts
          WHERE end_date IS NOT NULL

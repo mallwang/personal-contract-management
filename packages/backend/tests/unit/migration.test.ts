@@ -61,9 +61,12 @@ describe('runMigrations – existing database with monthly_amount', () => {
     expect(cols).toContain('billing_interval');
     expect(cols).not.toContain('monthly_amount');
 
-    const row = db.prepare<[string], { amount: number; billing_interval: string }>(
-      `SELECT amount, billing_interval FROM contracts WHERE id = ?`,
-    ).get(id)!;
+    const row = db
+      .prepare<
+        [string],
+        { amount: number; billing_interval: string }
+      >(`SELECT amount, billing_interval FROM contracts WHERE id = ?`)
+      .get(id)!;
     expect(row.amount).toBe(15.99);
     expect(row.billing_interval).toBe('MONTHLY');
     db.close();
@@ -81,7 +84,7 @@ describe('runMigrations – existing database with monthly_amount', () => {
 
     runMigrations(db);
 
-    const count = (db.prepare<[], { n: number }>(`SELECT COUNT(*) as n FROM contracts`).get()!)!.n;
+    const count = db.prepare<[], { n: number }>(`SELECT COUNT(*) as n FROM contracts`).get()!!.n;
     expect(count).toBe(3);
     db.close();
   });

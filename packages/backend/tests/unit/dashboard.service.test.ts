@@ -129,10 +129,30 @@ describe('DashboardService – contractsByCategory', () => {
 
   it('groups active contracts by category with correct count and normalized total', () => {
     // 2 subscriptions: €10/mo + €30/quarter → €10+€10 = €20/mo
-    insertContract(db, { category: 'SUBSCRIPTIONS', amount: 10, billing_interval: 'MONTHLY', status: 'ACTIVE' });
-    insertContract(db, { category: 'SUBSCRIPTIONS', amount: 30, billing_interval: 'QUARTERLY', status: 'ACTIVE' });
-    insertContract(db, { category: 'HOUSING', amount: 1000, billing_interval: 'MONTHLY', status: 'ACTIVE' });
-    insertContract(db, { category: 'HOUSING', amount: 999, billing_interval: 'MONTHLY', status: 'INACTIVE' });
+    insertContract(db, {
+      category: 'SUBSCRIPTIONS',
+      amount: 10,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
+    insertContract(db, {
+      category: 'SUBSCRIPTIONS',
+      amount: 30,
+      billing_interval: 'QUARTERLY',
+      status: 'ACTIVE',
+    });
+    insertContract(db, {
+      category: 'HOUSING',
+      amount: 1000,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
+    insertContract(db, {
+      category: 'HOUSING',
+      amount: 999,
+      billing_interval: 'MONTHLY',
+      status: 'INACTIVE',
+    });
     const result = service.getDashboardData();
     const subs = result.contractsByCategory.find((c) => c.category === 'SUBSCRIPTIONS');
     const housing = result.contractsByCategory.find((c) => c.category === 'HOUSING');
@@ -145,8 +165,18 @@ describe('DashboardService – contractsByCategory', () => {
   });
 
   it('excludes LIFETIME contracts from category monthly totals', () => {
-    insertContract(db, { category: 'OTHER', amount: 999, billing_interval: 'LIFETIME', status: 'ACTIVE' });
-    insertContract(db, { category: 'OTHER', amount: 20, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, {
+      category: 'OTHER',
+      amount: 999,
+      billing_interval: 'LIFETIME',
+      status: 'ACTIVE',
+    });
+    insertContract(db, {
+      category: 'OTHER',
+      amount: 20,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
     const result = service.getDashboardData();
     const other = result.contractsByCategory.find((c) => c.category === 'OTHER');
     expect(other?.monthlyTotal).toBeCloseTo(20, 2);
@@ -161,7 +191,12 @@ describe('DashboardService – contractsByCategory', () => {
   });
 
   it('includes the human-readable label for each category', () => {
-    insertContract(db, { category: 'UTILITIES', status: 'ACTIVE', amount: 50, billing_interval: 'MONTHLY' });
+    insertContract(db, {
+      category: 'UTILITIES',
+      status: 'ACTIVE',
+      amount: 50,
+      billing_interval: 'MONTHLY',
+    });
     const result = service.getDashboardData();
     const utilities = result.contractsByCategory.find((c) => c.category === 'UTILITIES');
     expect(utilities?.label).toBe('Utilities');

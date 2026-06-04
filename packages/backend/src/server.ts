@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyInstance, type FastifyError } from 'fastify';
 import cors from '@fastify/cors';
 import type Database from 'better-sqlite3';
 import { dashboardRoutes } from './routes/dashboard.js';
@@ -16,7 +16,7 @@ export async function buildServer(db: Database.Database): Promise<FastifyInstanc
 
   fastify.decorate('db', db);
 
-  fastify.setErrorHandler((error, _request, reply) => {
+  fastify.setErrorHandler((error: FastifyError, _request, reply) => {
     fastify.log.error(error);
     reply.status(error.statusCode ?? 500).send({
       statusCode: error.statusCode ?? 500,

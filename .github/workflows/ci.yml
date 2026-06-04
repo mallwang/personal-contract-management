@@ -26,8 +26,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Type check (shared)
-        run: pnpm --filter @pcm/shared exec tsc --noEmit 2>/dev/null || true
+      - name: Build shared (required for backend project references)
+        run: pnpm --filter @pcm/shared exec tsc --build
 
       - name: Type check (backend)
         working-directory: packages/backend

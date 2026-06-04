@@ -10,8 +10,10 @@ coverage/
 .nyc_output/
 *.tsbuildinfo
 pnpm-lock.yaml
+data/
 *.db
 *.db-journal
+.vite/
 .DS_Store
 Thumbs.db
 *.tmp

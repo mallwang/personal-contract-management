@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Welcome Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5174');
   });
 
   test('US1 – shows total monthly spending', async ({ page }) => {
@@ -12,10 +12,11 @@ test.describe('Welcome Dashboard', () => {
   });
 
   test('US2 – shows contracts grouped by category', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /by category/i })).toBeVisible();
-    await expect(page.getByText('Housing')).toBeVisible();
-    await expect(page.getByText('Utilities')).toBeVisible();
-    await expect(page.getByText('Subscriptions')).toBeVisible();
+    const section = page.getByRole('region', { name: 'Contracts by category' });
+    await expect(section.getByRole('heading', { name: /by category/i })).toBeVisible();
+    await expect(section.getByText('Housing')).toBeVisible();
+    await expect(section.getByText('Utilities')).toBeVisible();
+    await expect(section.getByText('Subscriptions')).toBeVisible();
   });
 
   test('US3 – shows upcoming renewals section', async ({ page }) => {
@@ -24,7 +25,7 @@ test.describe('Welcome Dashboard', () => {
 
   test('all three sections visible without scrolling at 1280x800', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5174');
 
     const spending = page.getByRole('heading', { name: /monthly spending/i });
     const category = page.getByRole('heading', { name: /by category/i });

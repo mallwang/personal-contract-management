@@ -2,6 +2,7 @@ import Fastify, { type FastifyInstance, type FastifyError } from 'fastify';
 import cors from '@fastify/cors';
 import type Database from 'better-sqlite3';
 import { dashboardRoutes } from './routes/dashboard.js';
+import { contractRoutes } from './routes/contracts.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -26,6 +27,7 @@ export async function buildServer(db: Database.Database): Promise<FastifyInstanc
   });
 
   await fastify.register(dashboardRoutes);
+  await fastify.register(contractRoutes);
 
   return fastify;
 }

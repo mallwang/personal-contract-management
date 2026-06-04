@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useDashboard } from '../services/api.js';
 import { SpendingOverview } from '../components/SpendingOverview.js';
 import { CategoryBreakdown } from '../components/CategoryBreakdown.js';
@@ -27,9 +28,17 @@ export function Dashboard() {
   return (
     <div className="min-h-screen bg-[--color-muted] p-6">
       <main className="dashboard mx-auto max-w-5xl">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-[--color-muted-foreground]">Your contract overview</p>
+        <header className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-sm text-[--color-muted-foreground]">Your contract overview</p>
+          </div>
+          <Link
+            to="/contracts"
+            className="rounded border px-4 py-2 text-sm font-medium hover:bg-background"
+          >
+            Manage Contracts
+          </Link>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-3">

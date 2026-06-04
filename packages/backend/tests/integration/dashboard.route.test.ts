@@ -11,7 +11,8 @@ function insertContract(
     id: string;
     name: string;
     category: string;
-    monthly_amount: number;
+    amount: number;
+    billing_interval: string;
     status: string;
     end_date: string | null;
   }> = {},
@@ -20,7 +21,8 @@ function insertContract(
     id: randomUUID(),
     name: 'Test',
     category: 'SUBSCRIPTIONS',
-    monthly_amount: 10.0,
+    amount: 10.0,
+    billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
     created_at: new Date().toISOString(),
@@ -28,8 +30,8 @@ function insertContract(
     ...overrides,
   };
   db.prepare(
-    `INSERT INTO contracts (id, name, category, monthly_amount, status, end_date, created_at, updated_at)
-     VALUES (@id, @name, @category, @monthly_amount, @status, @end_date, @created_at, @updated_at)`,
+    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at)
+     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at)`,
   ).run(row);
 }
 
@@ -66,19 +68,42 @@ describe('GET /api/dashboard', () => {
     });
   });
 
-  it('returns correct totalMonthlySpending summing only active contracts', async () => {
-    insertContract(db, { monthly_amount: 100, status: 'ACTIVE' });
-    insertContract(db, { monthly_amount: 50, status: 'ACTIVE' });
-    insertContract(db, { monthly_amount: 999, status: 'INACTIVE' });
+  it('returns correct totalMonthlySpending for MONTHLY contracts (active only)', async () => {
+    insertContract(db, { amount: 100, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, { amount: 50, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, { amount: 999, billing_interval: 'MONTHLY', status: 'INACTIVE' });
     const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ totalMonthlySpending: number }>();
     expect(body.totalMonthlySpending).toBeCloseTo(150, 2);
   });
 
-  it('returns contractsByCategory grouped by category', async () => {
-    insertContract(db, { category: 'HOUSING', monthly_amount: 1200, status: 'ACTIVE' });
-    insertContract(db, { category: 'SUBSCRIPTIONS', monthly_amount: 15, status: 'ACTIVE' });
-    insertContract(db, { category: 'SUBSCRIPTIONS', monthly_amount: 10, status: 'ACTIVE' });
+  it('normalizes QUARTERLY contracts to monthly equivalent', async () => {
+    // €30/quarter → €10/month
+    insertContract(db, { amount: 30, billing_interval: 'QUARTERLY', status: 'ACTIVE' });
+    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const body = res.json<{ totalMonthlySpending: number }>();
+    expect(body.totalMonthlySpending).toBeCloseTo(10, 2);
+  });
+
+  it('normalizes YEARLY contracts to monthly equivalent', async () => {
+    // €120/year → €10/month
+    insertContract(db, { amount: 120, billing_interval: 'YEARLY', status: 'ACTIVE' });
+    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const body = res.json<{ totalMonthlySpending: number }>();
+    expect(body.totalMonthlySpending).toBeCloseTo(10, 2);
+  });
+
+  it('excludes LIFETIME contracts from totalMonthlySpending', async () => {
+    insertContract(db, { amount: 999, billing_interval: 'LIFETIME', status: 'ACTIVE' });
+    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const body = res.json<{ totalMonthlySpending: number }>();
+    expect(body.totalMonthlySpending).toBe(0);
+  });
+
+  it('returns contractsByCategory grouped by category with normalized totals', async () => {
+    insertContract(db, { category: 'HOUSING', amount: 1200, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, { category: 'SUBSCRIPTIONS', amount: 15, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, { category: 'SUBSCRIPTIONS', amount: 10, billing_interval: 'MONTHLY', status: 'ACTIVE' });
     const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ contractsByCategory: Array<{ category: string; count: number; monthlyTotal: number; label: string }> }>();
     const housing = body.contractsByCategory.find((c) => c.category === 'HOUSING');
@@ -99,5 +124,17 @@ describe('GET /api/dashboard', () => {
     expect(body.upcomingRenewals).toHaveLength(1);
     expect(body.upcomingRenewals[0]?.name).toBe('Soon');
     expect(body.upcomingRenewals[0]?.daysRemaining).toBeLessThanOrEqual(10);
+  });
+
+  it('excludes LIFETIME contracts from upcomingRenewals even with imminent end_date', async () => {
+    insertContract(db, {
+      name: 'Lifetime License',
+      billing_interval: 'LIFETIME',
+      end_date: daysFromNow(5),
+      status: 'ACTIVE',
+    });
+    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const body = res.json<{ upcomingRenewals: Array<unknown> }>();
+    expect(body.upcomingRenewals).toHaveLength(0);
   });
 });

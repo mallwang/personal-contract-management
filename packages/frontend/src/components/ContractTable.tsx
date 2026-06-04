@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BILLING_INTERVAL_LABELS } from '@pcm/shared';
 import type { ContractData } from '@pcm/shared';
 
 interface ContractTableProps {
@@ -25,7 +26,7 @@ export function ContractTable({ contracts, onDelete }: ContractTableProps) {
           <tr className="border-b text-left text-[--color-muted-foreground]">
             <th className="py-2 pr-4 font-medium">Name</th>
             <th className="py-2 pr-4 font-medium">Category</th>
-            <th className="py-2 pr-4 font-medium text-right">Monthly</th>
+            <th className="py-2 pr-4 font-medium text-right">Amount / Interval</th>
             <th className="py-2 pr-4 font-medium">Status</th>
             <th className="py-2 pr-4 font-medium">End Date</th>
             <th className="py-2 font-medium">Actions</th>
@@ -37,10 +38,12 @@ export function ContractTable({ contracts, onDelete }: ContractTableProps) {
               <td className="py-2 pr-4 font-medium">{contract.name}</td>
               <td className="py-2 pr-4 capitalize">{contract.category}</td>
               <td className="py-2 pr-4 text-right">
-                {contract.monthlyAmount.toLocaleString(undefined, {
+                {contract.amount.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
+                {' / '}
+                {BILLING_INTERVAL_LABELS[contract.billingInterval]}
               </td>
               <td className="py-2 pr-4">{contract.status}</td>
               <td className="py-2 pr-4">{contract.endDate ?? '—'}</td>

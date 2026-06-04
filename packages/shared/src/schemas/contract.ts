@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Category, ContractStatus } from '../types/contract.js';
+import { Category, ContractStatus, BillingInterval } from '../types/contract.js';
 
 const CategoryEnum = z.enum([
   Category.UTILITIES,
@@ -11,11 +11,20 @@ const CategoryEnum = z.enum([
 
 const StatusEnum = z.enum([ContractStatus.ACTIVE, ContractStatus.INACTIVE]);
 
+export const BillingIntervalSchema = z.enum([
+  BillingInterval.WEEKLY,
+  BillingInterval.MONTHLY,
+  BillingInterval.QUARTERLY,
+  BillingInterval.YEARLY,
+  BillingInterval.LIFETIME,
+]);
+
 export const ContractSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200),
   category: CategoryEnum,
-  monthlyAmount: z.number().nonnegative(),
+  amount: z.number().nonnegative(),
+  billingInterval: BillingIntervalSchema,
   status: StatusEnum,
   endDate: z
     .string()
@@ -30,7 +39,8 @@ export const ContractListResponseSchema = z.array(ContractSchema);
 export const CreateContractBodySchema = z.object({
   name: z.string().min(1).max(200),
   category: CategoryEnum,
-  monthlyAmount: z.number().nonnegative(),
+  amount: z.number().nonnegative(),
+  billingInterval: BillingIntervalSchema,
   status: StatusEnum.default(ContractStatus.ACTIVE),
   endDate: z
     .string()

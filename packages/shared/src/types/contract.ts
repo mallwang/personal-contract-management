@@ -23,11 +23,30 @@ export const ContractStatus = {
 
 export type ContractStatus = (typeof ContractStatus)[keyof typeof ContractStatus];
 
+export const BillingInterval = {
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+  QUARTERLY: 'QUARTERLY',
+  YEARLY: 'YEARLY',
+  LIFETIME: 'LIFETIME',
+} as const;
+
+export type BillingInterval = (typeof BillingInterval)[keyof typeof BillingInterval];
+
+export const BILLING_INTERVAL_LABELS: Record<BillingInterval, string> = {
+  WEEKLY: 'Weekly',
+  MONTHLY: 'Monthly',
+  QUARTERLY: 'Quarterly',
+  YEARLY: 'Yearly',
+  LIFETIME: 'Lifetime',
+};
+
 export interface Contract {
   id: string;
   name: string;
   category: Category;
-  monthlyAmount: number;
+  amount: number;
+  billingInterval: BillingInterval;
   status: ContractStatus;
   endDate: string | null;
   createdAt: string;

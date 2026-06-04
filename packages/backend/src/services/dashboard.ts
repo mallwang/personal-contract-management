@@ -2,6 +2,16 @@ import type Database from 'better-sqlite3';
 import type { DashboardResponse, CategorySummary, UpcomingRenewal } from '@pcm/shared';
 import { CATEGORY_LABELS, type Category } from '@pcm/shared';
 
+const MONTHLY_FACTOR_SQL = `
+  amount * CASE billing_interval
+    WHEN 'WEEKLY'    THEN 52.0/12.0
+    WHEN 'MONTHLY'   THEN 1.0
+    WHEN 'QUARTERLY' THEN 1.0/3.0
+    WHEN 'YEARLY'    THEN 1.0/12.0
+    ELSE 0.0
+  END
+`.trim();
+
 export class DashboardService {
   constructor(private readonly db: Database.Database) {}
 
@@ -15,7 +25,7 @@ export class DashboardService {
   private getTotalMonthlySpending(): number {
     const row = this.db
       .prepare<[], { total: number }>(
-        `SELECT COALESCE(SUM(monthly_amount), 0) AS total
+        `SELECT COALESCE(SUM(${MONTHLY_FACTOR_SQL}), 0) AS total
          FROM contracts
          WHERE status = 'ACTIVE'`,
       )
@@ -31,7 +41,7 @@ export class DashboardService {
       >(
         `SELECT category,
                 COUNT(*) AS count,
-                SUM(monthly_amount) AS monthly_total
+                SUM(${MONTHLY_FACTOR_SQL}) AS monthly_total
          FROM contracts
          WHERE status = 'ACTIVE'
          GROUP BY category
@@ -56,6 +66,7 @@ export class DashboardService {
         `SELECT id, name, category, end_date
          FROM contracts
          WHERE end_date IS NOT NULL
+           AND billing_interval != 'LIFETIME'
            AND end_date >= DATE('now')
            AND end_date <= DATE('now', '+30 days')
          ORDER BY end_date ASC`,

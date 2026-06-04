@@ -8,7 +8,8 @@ function rowToContract(row: ContractRow): ContractData {
     id: row.id,
     name: row.name,
     category: row.category as ContractData['category'],
-    monthlyAmount: row.monthly_amount,
+    amount: row.amount,
+    billingInterval: row.billing_interval as ContractData['billingInterval'],
     status: row.status as ContractData['status'],
     endDate: row.end_date,
     createdAt: row.created_at,
@@ -31,14 +32,15 @@ export class ContractService {
     const id = randomUUID();
     this.db
       .prepare(
-        `INSERT INTO contracts (id, name, category, monthly_amount, status, end_date, created_at, updated_at)
-         VALUES (@id, @name, @category, @monthly_amount, @status, @end_date, @created_at, @updated_at)`,
+        `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at)
+         VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at)`,
       )
       .run({
         id,
         name: body.name,
         category: body.category,
-        monthly_amount: body.monthlyAmount,
+        amount: body.amount,
+        billing_interval: body.billingInterval,
         status: body.status ?? 'ACTIVE',
         end_date: body.endDate ?? null,
         created_at: now,
@@ -61,7 +63,8 @@ export class ContractService {
       ...existing,
       name: body.name ?? existing.name,
       category: body.category ?? existing.category,
-      monthly_amount: body.monthlyAmount ?? existing.monthly_amount,
+      amount: body.amount ?? existing.amount,
+      billing_interval: body.billingInterval ?? existing.billing_interval,
       status: body.status ?? existing.status,
       end_date: body.endDate !== undefined ? (body.endDate ?? null) : existing.end_date,
       updated_at: now,
@@ -69,8 +72,9 @@ export class ContractService {
     this.db
       .prepare(
         `UPDATE contracts
-         SET name = @name, category = @category, monthly_amount = @monthly_amount,
-             status = @status, end_date = @end_date, updated_at = @updated_at
+         SET name = @name, category = @category, amount = @amount,
+             billing_interval = @billing_interval, status = @status,
+             end_date = @end_date, updated_at = @updated_at
          WHERE id = @id`,
       )
       .run(updated);

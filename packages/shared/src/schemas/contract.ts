@@ -53,6 +53,7 @@ export const ContractSchema = z.object({
   details: z.string().max(2000).nullable(),
   serviceUrl: z.string().url().nullable(),
   cancellationPeriod: CancellationPeriodSchema.nullable(),
+  anonymize: z.boolean().default(false),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -78,6 +79,7 @@ export const CreateContractBodySchema = z.object({
   details: z.string().max(2000).nullable().optional(),
   serviceUrl: z.string().url().nullable().optional(),
   cancellationPeriod: CancellationPeriodSchema.nullable().optional(),
+  anonymize: z.boolean().optional(),
 });
 
 export const UpdateContractBodySchema = CreateContractBodySchema.partial();

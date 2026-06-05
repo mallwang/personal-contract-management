@@ -15,6 +15,7 @@ interface ContractFormValues {
   serviceUrl: string;
   cancellationPeriodValue: string;
   cancellationPeriodUnit: string;
+  anonymize: boolean;
 }
 
 interface ContractFormProps {
@@ -47,6 +48,7 @@ export function ContractForm({
     serviceUrl: defaultValues?.serviceUrl ?? '',
     cancellationPeriodValue: defaultValues?.cancellationPeriodValue ?? '',
     cancellationPeriodUnit: defaultValues?.cancellationPeriodUnit ?? 'MONTHS',
+    anonymize: defaultValues?.anonymize ?? false,
   });
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -85,6 +87,7 @@ export function ContractForm({
               unit: values.cancellationPeriodUnit as CancellationPeriodUnit,
             }
           : null,
+      anonymize: values.anonymize,
     });
   }
 
@@ -295,6 +298,24 @@ export function ContractForm({
               </option>
             ))}
           </select>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-2 pt-1">
+        <input
+          id="anonymize"
+          type="checkbox"
+          checked={values.anonymize}
+          onChange={(e) => setValues((v) => ({ ...v, anonymize: e.target.checked }))}
+          className="mt-0.5 h-4 w-4 rounded border"
+        />
+        <div className="flex flex-col gap-0.5">
+          <label htmlFor="anonymize" className="cursor-pointer text-sm font-medium">
+            {t('anonymization.anonymizeContract')}
+          </label>
+          <span className="text-xs text-[--color-muted-foreground]">
+            {t('anonymization.anonymizeContractHint')}
+          </span>
         </div>
       </div>
 

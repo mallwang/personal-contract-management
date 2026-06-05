@@ -59,6 +59,7 @@ export function ContractEdit() {
                 ? String(contract.cancellationPeriod.value)
                 : '',
               cancellationPeriodUnit: contract.cancellationPeriod?.unit ?? 'MONTHS',
+              anonymize: contract.anonymize,
             }}
             onSubmit={(data) =>
               updateContract(

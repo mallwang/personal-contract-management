@@ -18,6 +18,7 @@ const sampleContracts: ContractData[] = [
     details: null,
     serviceUrl: null,
     cancellationPeriod: null,
+    anonymize: false,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -33,6 +34,7 @@ const sampleContracts: ContractData[] = [
     details: null,
     serviceUrl: null,
     cancellationPeriod: null,
+    anonymize: false,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -119,6 +121,51 @@ describe('ContractTable – data display', () => {
       </MemoryRouter>,
     );
     expect(screen.getByText(/no contracts yet/i)).toBeInTheDocument();
+  });
+});
+
+describe('ContractTable – anonymization', () => {
+  const getDisplayName = (c: ContractData) => `Fantasy-${c.id.slice(0, 4)}`;
+
+  it('shows real names when isAnonymized=false', () => {
+    render(
+      <MemoryRouter>
+        <ContractTable
+          contracts={sampleContracts}
+          onDelete={vi.fn()}
+          isAnonymized={false}
+          getDisplayName={getDisplayName}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Netflix')).toBeInTheDocument();
+    expect(screen.getByText('Rent')).toBeInTheDocument();
+  });
+
+  it('shows fantasy names when isAnonymized=true', () => {
+    render(
+      <MemoryRouter>
+        <ContractTable
+          contracts={sampleContracts}
+          onDelete={vi.fn()}
+          isAnonymized={true}
+          getDisplayName={getDisplayName}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText('Netflix')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rent')).not.toBeInTheDocument();
+    expect(screen.getByText(getDisplayName(sampleContracts[0]!))).toBeInTheDocument();
+    expect(screen.getByText(getDisplayName(sampleContracts[1]!))).toBeInTheDocument();
+  });
+
+  it('works without optional anonymization props (backwards compat)', () => {
+    render(
+      <MemoryRouter>
+        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Netflix')).toBeInTheDocument();
   });
 });
 

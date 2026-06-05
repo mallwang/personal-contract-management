@@ -215,3 +215,47 @@ describe('ContractForm – cancel', () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 });
+
+describe('ContractForm – anonymize field', () => {
+  it('renders the anonymize checkbox', () => {
+    render(<ContractForm onSubmit={vi.fn()} onCancel={vi.fn()} />);
+    expect(screen.getByLabelText(/anonymize/i)).toBeInTheDocument();
+  });
+
+  it('anonymize checkbox is unchecked by default', () => {
+    render(<ContractForm onSubmit={vi.fn()} onCancel={vi.fn()} />);
+    const cb = screen.getByLabelText(/anonymize/i) as HTMLInputElement;
+    expect(cb.checked).toBe(false);
+  });
+
+  it('pre-checks anonymize when defaultValues.anonymize=true', () => {
+    render(
+      <ContractForm defaultValues={{ anonymize: true }} onSubmit={vi.fn()} onCancel={vi.fn()} />,
+    );
+    const cb = screen.getByLabelText(/anonymize/i) as HTMLInputElement;
+    expect(cb.checked).toBe(true);
+  });
+
+  it('submits anonymize=false when unchecked', async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    render(<ContractForm onSubmit={onSubmit} onCancel={vi.fn()} />);
+    await user.type(screen.getByLabelText(/name/i), 'Test');
+    await user.type(screen.getByLabelText(/^amount/i), '10');
+    await user.click(screen.getByRole('button', { name: /save/i }));
+    const payload = onSubmit.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(payload.anonymize).toBe(false);
+  });
+
+  it('submits anonymize=true when checked', async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    render(<ContractForm onSubmit={onSubmit} onCancel={vi.fn()} />);
+    await user.type(screen.getByLabelText(/name/i), 'Test');
+    await user.type(screen.getByLabelText(/^amount/i), '10');
+    await user.click(screen.getByLabelText(/anonymize/i));
+    await user.click(screen.getByRole('button', { name: /save/i }));
+    const payload = onSubmit.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(payload.anonymize).toBe(true);
+  });
+});

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { ContractData } from '@pcm/shared';
@@ -7,12 +7,48 @@ import { useLocaleFormat } from '../hooks/useLocaleFormat.js';
 interface ContractTableProps {
   contracts: ContractData[];
   onDelete: (id: string) => void;
+  isAnonymized?: boolean;
+  getDisplayName?: (contract: ContractData) => string;
 }
 
-export function ContractTable({ contracts, onDelete }: ContractTableProps) {
+export function ContractTable({
+  contracts,
+  onDelete,
+  isAnonymized = false,
+  getDisplayName,
+}: ContractTableProps) {
   const { t } = useTranslation();
   const { formatCurrency } = useLocaleFormat();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const [displayAnonymized, setDisplayAnonymized] = useState(isAnonymized);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const prevAnonymized = useRef(isAnonymized);
+
+  useEffect(() => {
+    if (prevAnonymized.current === isAnonymized) return;
+    prevAnonymized.current = isAnonymized;
+
+    setIsFlipping(true);
+    const swapTimer = setTimeout(() => {
+      setDisplayAnonymized(isAnonymized);
+    }, 200);
+    const endTimer = setTimeout(() => {
+      setIsFlipping(false);
+    }, 400);
+
+    return () => {
+      clearTimeout(swapTimer);
+      clearTimeout(endTimer);
+    };
+  }, [isAnonymized]);
+
+  function resolveName(contract: ContractData): string {
+    if (displayAnonymized || contract.anonymize) {
+      return getDisplayName ? getDisplayName(contract) : contract.name;
+    }
+    return contract.name;
+  }
 
   if (contracts.length === 0) {
     return (
@@ -38,7 +74,11 @@ export function ContractTable({ contracts, onDelete }: ContractTableProps) {
         <tbody>
           {contracts.map((contract) => (
             <tr key={contract.id} className="border-b last:border-0">
-              <td className="py-2 pr-4 font-medium">{contract.name}</td>
+              <td className="py-2 pr-4 font-medium">
+                <span className={isFlipping ? 'animate-name-flip' : undefined}>
+                  {resolveName(contract)}
+                </span>
+              </td>
               <td className="py-2 pr-4">{t(`category.${contract.category}`)}</td>
               <td className="py-2 pr-4 text-right">
                 {formatCurrency(contract.amount)}

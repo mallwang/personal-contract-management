@@ -63,6 +63,15 @@ export function runMigrations(instance: Database.Database): void {
       );
     `);
   }
+
+  const hasAnonymize = instance
+    .prepare<[], { name: string }>(`PRAGMA table_info(contracts)`)
+    .all()
+    .some((col) => col.name === 'anonymize');
+
+  if (!hasAnonymize) {
+    instance.exec(`ALTER TABLE contracts ADD COLUMN anonymize INTEGER NOT NULL DEFAULT 0`);
+  }
 }
 
 export interface ContractRow {
@@ -78,6 +87,7 @@ export interface ContractRow {
   service_url: string | null;
   cancellation_period_value: number | null;
   cancellation_period_unit: string | null;
+  anonymize: number;
   created_at: string;
   updated_at: string;
 }

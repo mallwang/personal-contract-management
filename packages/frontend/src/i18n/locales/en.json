@@ -94,5 +94,12 @@
     "saveChanges": "Save Changes",
     "loadError": "Failed to load contracts.",
     "notFound": "Contract not found."
+  },
+  "anonymization": {
+    "showReal": "Show Names",
+    "hideReal": "Hide Names",
+    "toggleAriaLabel": "Toggle contract name anonymization",
+    "anonymizeContract": "Anonymize this contract",
+    "anonymizeContractHint": "Always hide the name of this contract in the list view"
   }
 }

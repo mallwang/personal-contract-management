@@ -450,3 +450,64 @@ describe('DELETE /api/contracts/:id', () => {
     expect(res.statusCode).toBe(404);
   });
 });
+
+describe('anonymize field – GET /api/contracts', () => {
+  let db: Database.Database;
+  let app: FastifyInstance;
+
+  beforeEach(async () => {
+    db = createDb(':memory:');
+    runMigrations(db);
+    app = await buildServer(db);
+    await app.ready();
+  });
+
+  afterEach(async () => {
+    await app.close();
+    db.close();
+  });
+
+  it('GET response includes anonymize=false by default', async () => {
+    await app.inject({
+      method: 'POST',
+      url: '/api/contracts',
+      payload: { name: 'Test', category: 'OTHER', amount: 1, billingInterval: 'MONTHLY' },
+    });
+    const res = await app.inject({ method: 'GET', url: '/api/contracts' });
+    const body = res.json<Array<Record<string, unknown>>>();
+    expect(body[0]).toHaveProperty('anonymize', false);
+  });
+
+  it('POST with anonymize=true stores and returns anonymize=true', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/contracts',
+      payload: {
+        name: 'Secret',
+        category: 'OTHER',
+        amount: 5,
+        billingInterval: 'MONTHLY',
+        anonymize: true,
+      },
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json<Record<string, unknown>>()).toHaveProperty('anonymize', true);
+  });
+
+  it('PUT /api/contracts/:id patches anonymize field', async () => {
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/contracts',
+      payload: { name: 'Test', category: 'OTHER', amount: 1, billingInterval: 'MONTHLY' },
+    });
+    const id = created.json<Record<string, unknown>>().id as string;
+
+    const updated = await app.inject({
+      method: 'PUT',
+      url: `/api/contracts/${id}`,
+      payload: { anonymize: true },
+    });
+    expect(updated.statusCode).toBe(200);
+    expect(updated.json<Record<string, unknown>>()).toHaveProperty('anonymize', true);
+  });
+});

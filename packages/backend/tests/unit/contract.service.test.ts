@@ -322,6 +322,102 @@ describe('ContractService – new fields (update)', () => {
   });
 });
 
+describe('ContractService – anonymize field', () => {
+  let db: Database.Database;
+  let service: ContractService;
+
+  beforeEach(() => {
+    db = makeDb();
+    service = new ContractService(db);
+  });
+
+  it('create defaults anonymize to false when not provided', () => {
+    const result = service.create({
+      name: 'Netflix',
+      category: 'SUBSCRIPTIONS',
+      amount: 15.99,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
+    expect(result.anonymize).toBe(false);
+  });
+
+  it('create stores anonymize=true when provided', () => {
+    const result = service.create({
+      name: 'Secret Service',
+      category: 'OTHER',
+      amount: 5,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+      anonymize: true,
+    });
+    expect(result.anonymize).toBe(true);
+  });
+
+  it('list maps anonymize column to boolean', () => {
+    service.create({
+      name: 'Public',
+      category: 'OTHER',
+      amount: 1,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+      anonymize: false,
+    });
+    service.create({
+      name: 'Private',
+      category: 'OTHER',
+      amount: 2,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+      anonymize: true,
+    });
+    const results = service.list();
+    const pub = results.find((c) => c.name === 'Public')!;
+    const priv = results.find((c) => c.name === 'Private')!;
+    expect(pub.anonymize).toBe(false);
+    expect(priv.anonymize).toBe(true);
+  });
+
+  it('update patches anonymize from false to true', () => {
+    const created = service.create({
+      name: 'Test',
+      category: 'OTHER',
+      amount: 1,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+      anonymize: false,
+    });
+    const updated = service.update(created.id, { anonymize: true })!;
+    expect(updated.anonymize).toBe(true);
+  });
+
+  it('update patches anonymize from true to false', () => {
+    const created = service.create({
+      name: 'Test',
+      category: 'OTHER',
+      amount: 1,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+      anonymize: true,
+    });
+    const updated = service.update(created.id, { anonymize: false })!;
+    expect(updated.anonymize).toBe(false);
+  });
+
+  it('update preserves anonymize when not included in patch', () => {
+    const created = service.create({
+      name: 'Test',
+      category: 'OTHER',
+      amount: 1,
+      billingInterval: 'MONTHLY',
+      status: 'ACTIVE',
+      anonymize: true,
+    });
+    const updated = service.update(created.id, { name: 'Updated Name' })!;
+    expect(updated.anonymize).toBe(true);
+  });
+});
+
 describe('ContractService – delete', () => {
   let db: Database.Database;
   let service: ContractService;

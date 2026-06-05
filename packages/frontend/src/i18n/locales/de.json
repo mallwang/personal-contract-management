@@ -94,5 +94,12 @@
     "saveChanges": "Änderungen speichern",
     "loadError": "Verträge konnten nicht geladen werden.",
     "notFound": "Vertrag nicht gefunden."
+  },
+  "anonymization": {
+    "showReal": "Namen anzeigen",
+    "hideReal": "Namen verbergen",
+    "toggleAriaLabel": "Anonymisierung der Vertragsnamen umschalten",
+    "anonymizeContract": "Diesen Vertrag anonymisieren",
+    "anonymizeContractHint": "Den Namen dieses Vertrags in der Listenansicht immer verbergen"
   }
 }

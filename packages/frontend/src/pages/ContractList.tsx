@@ -2,11 +2,14 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useContracts, useDeleteContract } from '../services/contracts.js';
 import { ContractTable } from '../components/ContractTable.js';
+import { AnonymizationToggle } from '../components/AnonymizationToggle.js';
+import { useAnonymization } from '../hooks/useAnonymization.js';
 
 export function ContractList() {
   const { t } = useTranslation();
   const { data, isLoading, isError, error } = useContracts();
   const { mutate: deleteContract, error: deleteError } = useDeleteContract();
+  const { isAnonymized, toggleAnonymization, getDisplayName } = useAnonymization();
 
   return (
     <div className="min-h-screen bg-[--color-muted] p-6">
@@ -20,12 +23,15 @@ export function ContractList() {
               </Link>
             </p>
           </div>
-          <Link
-            to="/contracts/new"
-            className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-          >
-            {t('nav.addContract')}
-          </Link>
+          <div className="flex items-center gap-3">
+            <AnonymizationToggle isActive={isAnonymized} onToggle={toggleAnonymization} />
+            <Link
+              to="/contracts/new"
+              className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+            >
+              {t('nav.addContract')}
+            </Link>
+          </div>
         </header>
 
         {deleteError && (
@@ -46,7 +52,12 @@ export function ContractList() {
 
         {data && (
           <div className="rounded-lg bg-background p-4 shadow-sm">
-            <ContractTable contracts={data} onDelete={(id) => deleteContract(id)} />
+            <ContractTable
+              contracts={data}
+              onDelete={(id) => deleteContract(id)}
+              isAnonymized={isAnonymized}
+              getDisplayName={getDisplayName}
+            />
           </div>
         )}
       </main>

@@ -7,7 +7,7 @@ All changes are confined to the frontend rendering layer:
 - `CategoryIcon` and `ProviderLogo` are internal React components
 - No new routes are added to the backend
 - No changes to `@pcm/shared` types or schemas
-- External logo fetching is done via browser `<img>` tags pointing to the DuckDuckGo Favicon API — no custom fetch wrapper or service contract needed
+- External logo fetching is done via browser `<img>` tags pointing to the logo.dev `/name/` API — no custom fetch wrapper or service contract needed
 
 ## Component Props (frontend-internal contracts)
 
@@ -24,8 +24,7 @@ interface CategoryIconProps {
 
 ```ts
 interface ProviderLogoProps {
-  serviceUrl: string | null;  // from contract.serviceUrl
-  name: string;               // from contract.name (fallback domain heuristic)
+  name: string;               // from contract.name — passed to logo.dev /name/ endpoint
   isAnonymized?: boolean;     // suppress logo when true; defaults to false
   className?: string;
   size?: number;              // icon size in px; defaults to 24

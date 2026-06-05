@@ -6,7 +6,7 @@
 
 ## Summary
 
-Add two layers of visual enhancement to contract display: (1) static category icons using the already-installed Lucide React library, and (2) dynamic provider logos fetched client-side from the DuckDuckGo Favicon API using the contract's `serviceUrl` or name. Both are purely frontend changes — no backend, no new shared types, no new dependencies. The anonymization system already in place extends naturally to suppress provider logos for anonymized contracts.
+Add two layers of visual enhancement to contract display: (1) static category icons using the already-installed Lucide React library, and (2) dynamic provider logos fetched client-side from the logo.dev `/name/` API using the contract name directly. Both are purely frontend changes — no backend, no new shared types. The anonymization system already in place extends naturally to suppress provider logos for anonymized contracts; the contract name is never sent to the logo.dev API when anonymization is active.
 
 ## Technical Context
 
@@ -16,7 +16,7 @@ Add two layers of visual enhancement to contract display: (1) static category ic
 - `lucide-react ^1.17.0` — category icons (already installed)
 - `react ^18.3.0`, `react-dom ^18.3.0` — UI (already installed)
 - `@pcm/shared` (workspace) — `ContractData`, `Category` types (no changes required)
-- DuckDuckGo Favicon API — browser `<img>` request, no SDK needed
+- logo.dev `/name/` API — browser `<img>` request, public token `VITE_LOGO_DEV_TOKEN` in `.env`
 
 **Storage**: N/A — no new persistence; logo URLs are ephemeral render-time values
 
@@ -28,7 +28,7 @@ Add two layers of visual enhancement to contract display: (1) static category ic
 
 **Performance Goals**: Logo `<img>` failures trigger fallback in ≤500ms; no measurable TTI regression on contracts list (±200ms tolerance)
 
-**Constraints**: Client-side only; no API keys; no backend changes; anonymization must suppress logos
+**Constraints**: Client-side only; public token in env var; no backend changes; anonymization must suppress logos and prevent name from being sent to logo.dev
 
 **Scale/Scope**: 5 contract categories; arbitrary number of contracts per user
 
@@ -40,12 +40,12 @@ Add two layers of visual enhancement to contract display: (1) static category ic
 
 - **Gate PASSES**: Failing tests for `CategoryIcon` and `ProviderLogo` components MUST be written before any implementation code.
 - `CategoryIcon` tests: verify correct icon rendered per category, and that the `DEFAULT` fallback renders for an unknown value.
-- `ProviderLogo` tests: verify domain resolution from `serviceUrl`, name heuristic fallback, anonymization guard, and `onError` fallback rendering.
+- `ProviderLogo` tests: verify logo URL construction from name, anonymization guard (returns null), and `onError` fallback rendering.
 
 ### Principle II — Type Safety (NON-NEGOTIABLE)
 
 - **Gate PASSES**: `CategoryIconMap` keyed on `Category | 'DEFAULT'`; `ProviderLogoProps` fully typed; no implicit `any`.
-- `resolveDomain` return type: `string | null`.
+- `logoUrl` return type: `string | null`.
 
 ### Principle III — Simplicity (YAGNI)
 
@@ -127,7 +127,6 @@ Exports a `ProviderLogo` React component accepting:
 
 ```ts
 {
-  serviceUrl: string | null;
   name: string;
   isAnonymized?: boolean;   // defaults to false
   size?: number;            // defaults to 24
@@ -135,20 +134,21 @@ Exports a `ProviderLogo` React component accepting:
 }
 ```
 
-**Domain resolution** (pure function, exported for testing):
+**Logo URL construction** (pure function, exported for testing):
 
 ```
-resolveDomain(serviceUrl, name, isAnonymized):
+logoUrl(name: string, isAnonymized: boolean): string | null
   if isAnonymized → return null
-  if serviceUrl is valid URL → return hostname.replace(/^www\./, '')
-  if name is non-empty → return name.split(' ')[0].toLowerCase() + '.com'
-  return null
+  if name is empty → return null
+  return `https://img.logo.dev/name/${encodeURIComponent(name)}?token=${LOGO_DEV_PUBLIC_TOKEN}`
 ```
+
+`LOGO_DEV_PUBLIC_TOKEN` is read from `import.meta.env.VITE_LOGO_DEV_TOKEN`.
 
 **Rendering**:
-- If `domain === null`: render Lucide `Building2` icon (fallback)
-- Otherwise: render `<img src="https://icons.duckduckgo.com/ip3/{domain}.ico" onError={showFallback} />`
-- On `onError`: switch to rendering Lucide `Building2` icon
+- If `logoUrl === null`: render Lucide `Building2` icon (fallback)
+- Otherwise: render `<img src={logoUrl} onError={showFallback} alt="" />`
+- On `onError`: switch to rendering Lucide `Building2` icon (covers network failure; logo.dev handles unknown-name fallback natively)
 - Reserve a fixed-size container (matching `size` prop) to prevent layout shift
 
 ---
@@ -164,7 +164,6 @@ Two cells updated per row:
 <td className="py-2 pr-4 font-medium">
   <span className="flex items-center gap-2">
     <ProviderLogo
-      serviceUrl={contract.serviceUrl}
       name={contract.name}
       isAnonymized={displayAnonymized || contract.anonymize}
       size={20}
@@ -192,22 +191,18 @@ Two cells updated per row:
 
 **File**: `packages/frontend/src/components/ContractForm.tsx`
 
-Add a live `ProviderLogo` preview in the Service URL field row, appearing below (or beside) the URL input when a domain can be resolved:
+Add a live `ProviderLogo` preview in the Name field row, appearing inline with the label when a name has been entered:
 
 ```tsx
-<div className="flex items-center gap-2 mt-1">
-  {(values.serviceUrl || values.name) && (
-    <ProviderLogo
-      serviceUrl={values.serviceUrl || null}
-      name={values.name}
-      size={28}
-    />
-  )}
-  {serviceUrlLink}
+<div className="flex items-center gap-2">
+  <label htmlFor="name" className="text-sm font-medium">
+    {t('contractForm.nameLabel')}
+  </label>
+  {values.name && <ProviderLogo name={values.name} size={20} />}
 </div>
 ```
 
-This shows a live logo preview as soon as the user has a name or service URL entered.
+This shows a live logo preview as soon as the user starts typing the contract name — directly fulfilling the spec's "show after the user entered its name" requirement.
 
 ---
 
@@ -219,13 +214,13 @@ This shows a live logo preview as soon as the user has a name or service URL ent
 - Accepts and applies `className` prop
 
 **`ProviderLogo.test.tsx`**:
-- `resolveDomain`: extracts hostname from `serviceUrl`, strips `www.`, returns `null` for invalid URL
-- `resolveDomain`: falls back to name heuristic when `serviceUrl` is null
-- `resolveDomain`: returns `null` when `isAnonymized` is `true`
-- Component renders `<img>` when domain is resolved
-- Component renders fallback icon when domain is null
-- Component renders fallback icon after `img` `onError` fires (simulate via `fireEvent.error`)
-- Component renders fallback icon when `isAnonymized` is true even if serviceUrl is set
+- `logoUrl`: returns correct logo.dev URL for a given name
+- `logoUrl`: returns `null` when name is empty
+- `logoUrl`: returns `null` when `isAnonymized` is `true`
+- Component renders `<img>` with the logo.dev URL when name is non-empty and not anonymized
+- Component renders fallback `Building2` icon when name is empty
+- Component renders fallback `Building2` icon after `img` `onError` fires (simulate via `fireEvent.error`)
+- Component renders fallback `Building2` icon when `isAnonymized` is `true`
 
 ## Complexity Tracking
 

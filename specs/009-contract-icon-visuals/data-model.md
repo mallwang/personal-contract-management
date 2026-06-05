@@ -10,14 +10,14 @@ No new persistent data entities. Both icons are **derived/ephemeral** from exist
 
 The existing `Contract` type in `packages/shared/src/types/contract.ts` already provides all inputs needed:
 
-| Existing field  | Used for            | Notes                                          |
-|-----------------|---------------------|------------------------------------------------|
-| `category`      | Category icon       | Maps directly to a Lucide icon via static map  |
-| `serviceUrl`    | Provider logo (T1)  | Domain extracted via URL parse                 |
-| `name`          | Provider logo (T2)  | First-word heuristic domain fallback           |
-| `anonymize`     | Logo suppression    | Forces fallback icon when `true`               |
+| Existing field  | Used for            | Notes                                                      |
+|-----------------|---------------------|------------------------------------------------------------|
+| `category`      | Category icon       | Maps directly to a Lucide icon via static map              |
+| `name`          | Provider logo       | Passed directly to logo.dev `/name/` endpoint              |
+| `anonymize`     | Logo suppression    | Forces fallback icon when `true`; name never sent to API   |
 
 **No changes to the `Contract` type or database schema are required.**
+**`serviceUrl` is no longer used for logo resolution** — logo.dev accepts company names directly.
 
 ---
 
@@ -44,27 +44,26 @@ Entries:
 
 ## ProviderLogoResolution (runtime derived value, not stored)
 
-At render time, a domain string is resolved from the contract and passed to the logo URL:
+At render time, the logo URL is constructed directly from the contract name:
 
 ```
-resolveDomain(contract: ContractData): string | null
+logoUrl(name: string, isAnonymized: boolean): string | null
 
 Algorithm:
-  1. If contract.serviceUrl is set and parseable as URL → return hostname stripped of "www."
-  2. Else if contract.name is set → return first word, lowercased + ".com"
-  3. Else → return null
-
-logoUrl(domain: string): string
-  → "https://icons.duckduckgo.com/ip3/{domain}.ico"
+  if isAnonymized → return null
+  if name is empty → return null
+  return `https://img.logo.dev/name/${encodeURIComponent(name)}?token=${LOGO_DEV_PUBLIC_TOKEN}`
 ```
 
-**No persistence**. The resolved domain and logo URL are computed each render.
+logo.dev returns a branded placeholder for unrecognised names, so no domain-resolution step is needed. React `<img onError>` still switches to the Lucide `Building2` fallback on full network failure.
+
+**No persistence**. The URL is computed each render.
 
 ---
 
 ## Anonymization Guard
 
-When `ProviderLogo` is rendered in an anonymized context (`isAnonymized` prop `true` OR `contract.anonymize === true`), `resolveDomain` must return `null` so only the fallback icon is shown.
+When `ProviderLogo` is rendered in an anonymized context (`isAnonymized` prop `true` OR `contract.anonymize === true`), `logoUrl` must return `null` so only the fallback icon is shown and the contract name is never sent to the logo.dev API.
 
 ---
 

@@ -26,53 +26,41 @@
 
 ## 2. Provider Logo Fetching Service
 
-**Decision**: Use the **DuckDuckGo Favicon Service** as the primary logo/icon source.
+**Decision**: Use **[logo.dev](https://www.logo.dev)** with the `/name/` endpoint.
 
-URL pattern: `https://icons.duckduckgo.com/ip3/{domain}.ico`
+URL pattern: `https://img.logo.dev/name/{name}?token={LOGO_DEV_PUBLIC_TOKEN}`
 
 **Rationale**:
-- Free with no API key or account required
-- Privacy-friendly (suitable for a personal-use app)
-- Returns a 404 or empty response for unknown domains, which `<img onError>` handles cleanly
-- No rate limits for personal-use volume
-- Cached by DuckDuckGo CDN
+- User already has an account with a provisioned public token
+- The `/name/` endpoint accepts a company name directly — no domain resolution step required
+- logo.dev handles unknown-company fallback natively (returns a placeholder, not a 404), eliminating the need for a React-level fallback for unknown providers
+- High-quality brand logos, not just favicons
+- React `<img onError>` still covers complete network failure
 
-**Alternatives considered**:
+**Token**: `pk_dTJBcEKxQgCQUZhio2o9Vw` (public key, safe to include in frontend bundle; store as `VITE_LOGO_DEV_TOKEN` in `.env`)
 
-| Service                       | Quality   | Auth needed | Privacy   | Decision       |
-|-------------------------------|-----------|-------------|-----------|----------------|
-| DuckDuckGo Favicon            | Favicon   | No          | Good      | **Selected**   |
-| Google Favicon API            | Good      | No          | Poor      | Rejected       |
-| Clearbit Logo API             | Excellent | No (free)   | Neutral   | Backup option  |
-| Manual brand asset hosting    | Perfect   | N/A         | Perfect   | Too much work  |
+**Alternatives considered and superseded**:
 
-**Note**: Clearbit (`https://logo.clearbit.com/{domain}`) produces higher-quality logos but has informal rate limits. Either service can be swapped in as the `src` URL since the fallback mechanism is service-agnostic.
+| Service                  | Quality   | Auth needed | Name lookup | Decision              |
+|--------------------------|-----------|-------------|-------------|-----------------------|
+| logo.dev `/name/`        | Excellent | Public token | Direct      | **Selected** (user account) |
+| DuckDuckGo Favicon       | Favicon   | No          | Domain only | Superseded            |
+| Google Favicon API       | Good      | No          | Domain only | Superseded            |
+| Clearbit Logo API        | Excellent | No (free)   | Domain only | Superseded            |
 
 ---
 
-## 3. Provider Domain Resolution
+## 3. Provider Name Lookup
 
-**Decision**: Two-tier resolution from existing contract data fields — no new data field required.
+**Decision**: Pass the contract `name` field directly to logo.dev's `/name/` endpoint — no domain resolution required.
 
-**Tier 1 — `serviceUrl` (reliable)**:
-Extract the hostname from the existing `serviceUrl` field via the browser-native `URL` constructor.
-Example: `https://www.netflix.com/plans` → `netflix.com`
+URL: `https://img.logo.dev/name/{encodeURIComponent(contract.name)}?token={LOGO_DEV_PUBLIC_TOKEN}`
 
-**Tier 2 — Name heuristic (best-effort)**:
-Take the first word of the contract name, lowercase it, append `.com`.
-Example: `"Netflix Subscription"` → `netflix.com`
+logo.dev's name search handles multi-word names (e.g., "Amazon Prime") and returns a graceful placeholder for unrecognised names. This replaces the former two-tier domain heuristic entirely.
 
-**Final fallback**:
-If neither tier yields a usable domain, or if the logo `<img>` fails to load, render Lucide `Building2` icon.
+**Anonymization guard**: when a contract is anonymized, pass `null` as the name so only the Lucide `Building2` fallback is shown (see §5).
 
-**Rationale**:
-- `serviceUrl` is already present on the `Contract` type and is the most reliable source
-- The name heuristic covers the common personal-contract case where users name contracts after the provider (e.g., "Spotify", "ADAC", "Amazon Prime")
-- No new data field, no backend changes — fully YAGNI-compliant
-
-**Known limitations**:
-- German compound provider names (e.g., "Stadtwerke München") won't resolve to a logo; fallback covers this cleanly
-- Non-`.com` TLDs not guessed by the heuristic (e.g., `bbc.co.uk`) — `serviceUrl` must be set for those
+**React-level fallback**: `<img onError>` → render Lucide `Building2` — covers the case where the device is fully offline or logo.dev is unreachable.
 
 ---
 

@@ -17,7 +17,7 @@
 
 **Purpose**: Confirm the current baseline is green before any changes are made.
 
-- [ ] T001 Run existing `ContractTable` test suite and confirm all tests pass: `cd packages/frontend && pnpm test -- ContractTable`
+- [x] T001 Run existing `ContractTable` test suite and confirm all tests pass: `cd packages/frontend && pnpm test -- ContractTable`
 
 ---
 
@@ -27,8 +27,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 Add `SortColumn`, `SortDirection`, and `SortState` type definitions at the top of `packages/frontend/src/components/ContractTable.tsx` (above the `ContractTableProps` interface) per `specs/007-sortable-datatable-columns/data-model.md`
-- [ ] T003 Add `sortState` / `setSortState` via `useState<SortState>` and a `sortedContracts` derived value (initially just `contracts` unchanged) inside `ContractTable` in `packages/frontend/src/components/ContractTable.tsx`; replace the `contracts.map(...)` in JSX with `sortedContracts.map(...)`
+- [x] T002 Add `SortColumn`, `SortDirection`, and `SortState` type definitions at the top of `packages/frontend/src/components/ContractTable.tsx` (above the `ContractTableProps` interface) per `specs/007-sortable-datatable-columns/data-model.md`
+- [x] T003 Add `sortState` / `setSortState` via `useState<SortState>` and a `sortedContracts` derived value (initially just `contracts` unchanged) inside `ContractTable` in `packages/frontend/src/components/ContractTable.tsx`; replace the `contracts.map(...)` in JSX with `sortedContracts.map(...)`
 
 **Checkpoint**: Types defined, hook wired, existing tests still pass.
 
@@ -42,17 +42,17 @@
 
 ### Tests for User Story 1 ⚠️ Write FIRST — confirm they FAIL before implementing T007–T008
 
-- [ ] T004 [US1] Add describe block `ContractTable – sorting` to `packages/frontend/tests/unit/ContractTable.test.tsx`; write failing test: clicking "Name" header once sorts rows A→Z
-- [ ] T005 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking "Name" header twice sorts rows Z→A
-- [ ] T006 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking "Name" header three times restores original order
-- [ ] T007 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking "Amount" header sorts rows by numeric `contract.amount` ascending (row with lower amount appears first, regardless of billing interval)
-- [ ] T008 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: contract with `endDate: null` sorts last when "End Date" header clicked once (ascending), and first when clicked twice (descending)
-- [ ] T009 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking a different sortable column resets direction to ascending on the new column
+- [x] T004 [US1] Add describe block `ContractTable – sorting` to `packages/frontend/tests/unit/ContractTable.test.tsx`; write failing test: clicking "Name" header once sorts rows A→Z
+- [x] T005 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking "Name" header twice sorts rows Z→A
+- [x] T006 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking "Name" header three times restores original order
+- [x] T007 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking "Amount" header sorts rows by numeric `contract.amount` ascending (row with lower amount appears first, regardless of billing interval)
+- [x] T008 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: contract with `endDate: null` sorts last when "End Date" header clicked once (ascending), and first when clicked twice (descending)
+- [x] T009 [P] [US1] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: clicking a different sortable column resets direction to ascending on the new column
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Implement the column comparator map and direction-aware sort in `packages/frontend/src/components/ContractTable.tsx`: replace the placeholder `contracts` in `sortedContracts` with a `[...contracts].sort(comparator)` call driven by `sortState`, using the comparators defined in `specs/007-sortable-datatable-columns/data-model.md`
-- [ ] T011 [US1] Add `onClick` handlers to the five sortable `<th>` elements (Name, Category, Amount, Status, End Date) in `packages/frontend/src/components/ContractTable.tsx` that call `setSortState` with the three-state cycle logic from `specs/007-sortable-datatable-columns/data-model.md`; leave the Actions `<th>` without a handler
+- [x] T010 [US1] Implement the column comparator map and direction-aware sort in `packages/frontend/src/components/ContractTable.tsx`: replace the placeholder `contracts` in `sortedContracts` with a `[...contracts].sort(comparator)` call driven by `sortState`, using the comparators defined in `specs/007-sortable-datatable-columns/data-model.md`
+- [x] T011 [US1] Add `onClick` handlers to the five sortable `<th>` elements (Name, Category, Amount, Status, End Date) in `packages/frontend/src/components/ContractTable.tsx` that call `setSortState` with the three-state cycle logic from `specs/007-sortable-datatable-columns/data-model.md`; leave the Actions `<th>` without a handler
 
 **Checkpoint**: All User Story 1 tests pass. Rows reorder correctly on header click; Actions column is inert.
 
@@ -66,15 +66,15 @@
 
 ### Tests for User Story 2 ⚠️ Write FIRST — confirm they FAIL before implementing T015–T016
 
-- [ ] T012 [US2] Add describe block `ContractTable – sort indicators` to `packages/frontend/tests/unit/ContractTable.test.tsx`; write failing test: when no sort is active, each sortable header contains an element with `aria-label="Sort"` (the neutral `ChevronsUpDown` icon)
-- [ ] T013 [P] [US2] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: after clicking a sortable header once, that header contains an element with `aria-label="Sorted ascending"` (`ChevronUp` icon)
-- [ ] T014 [P] [US2] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: after clicking the same sortable header twice, that header contains an element with `aria-label="Sorted descending"` (`ChevronDown` icon)
-- [ ] T015 [P] [US2] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: the Actions column header contains no sort icon (query for `aria-label="Sort"` inside the Actions `<th>` returns null)
+- [x] T012 [US2] Add describe block `ContractTable – sort indicators` to `packages/frontend/tests/unit/ContractTable.test.tsx`; write failing test: when no sort is active, each sortable header contains an element with `aria-label="Sort"` (the neutral `ChevronsUpDown` icon)
+- [x] T013 [P] [US2] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: after clicking a sortable header once, that header contains an element with `aria-label="Sorted ascending"` (`ChevronUp` icon)
+- [x] T014 [P] [US2] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: after clicking the same sortable header twice, that header contains an element with `aria-label="Sorted descending"` (`ChevronDown` icon)
+- [x] T015 [P] [US2] Write failing test in `packages/frontend/tests/unit/ContractTable.test.tsx`: the Actions column header contains no sort icon (query for `aria-label="Sort"` inside the Actions `<th>` returns null)
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Add `import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'` to `packages/frontend/src/components/ContractTable.tsx`
-- [ ] T017 [US2] Render the appropriate lucide-react icon inside each sortable `<th>` in `packages/frontend/src/components/ContractTable.tsx`: `ChevronUp` (aria-label="Sorted ascending") when column is active+asc, `ChevronDown` (aria-label="Sorted descending") when active+desc, `ChevronsUpDown` (aria-label="Sort") otherwise; add `className="cursor-pointer select-none"` to sortable headers and keep the Actions `<th>` unchanged
+- [x] T016 [US2] Add `import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'` to `packages/frontend/src/components/ContractTable.tsx`
+- [x] T017 [US2] Render the appropriate lucide-react icon inside each sortable `<th>` in `packages/frontend/src/components/ContractTable.tsx`: `ChevronUp` (aria-label="Sorted ascending") when column is active+asc, `ChevronDown` (aria-label="Sorted descending") when active+desc, `ChevronsUpDown` (aria-label="Sort") otherwise; add `className="cursor-pointer select-none"` to sortable headers and keep the Actions `<th>` unchanged
 
 **Checkpoint**: All User Story 2 tests pass. Icons appear and update correctly; Actions header has no icon.
 
@@ -84,8 +84,8 @@
 
 **Purpose**: Final validation across the whole feature.
 
-- [ ] T018 Run complete frontend test suite and confirm zero regressions: `cd packages/frontend && pnpm test`
-- [ ] T019 Perform manual browser validation per `specs/007-sortable-datatable-columns/quickstart.md` (golden path + anonymization + edit/delete regression)
+- [x] T018 Run complete frontend test suite and confirm zero regressions: `cd packages/frontend && pnpm test`
+- [x] T019 Perform manual browser validation per `specs/007-sortable-datatable-columns/quickstart.md` (golden path + anonymization + edit/delete regression)
 
 ---
 

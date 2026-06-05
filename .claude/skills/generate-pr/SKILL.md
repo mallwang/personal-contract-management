@@ -44,7 +44,7 @@ Example: `feat(contracts): add startDate, details, serviceUrl, and cancellationP
 
 ### 3. Produce the PR description
 
-Output **only** the markdown block below — no preamble, no explanation, no code fence. The user will copy-paste it directly.
+Output **only** the markdown block below — no preamble, no explanation. The user will copy-paste it directly into GitHub.
 
 Follow this structure exactly:
 
@@ -80,8 +80,9 @@ Follow this structure exactly:
 
 ### 4. Output format
 
-Print the title on its own line, then a blank line, then the markdown description. Example:
+Wrap the entire output in a single triple-backtick code fence so the user can copy raw markdown and paste it directly into GitHub's PR form. The fence itself must not have a language tag. Print the title on its own line inside the fence, then a blank line, then the markdown description. Example:
 
+````
 ```
 feat(contracts): add startDate, details, serviceUrl, and cancellationPeriod fields
 
@@ -109,10 +110,10 @@ feat(contracts): add startDate, details, serviceUrl, and cancellationPeriod fiel
 **Specs**
 - `specs/004-contract-fields-enhancement/`: spec, plan, tasks, data-model, API docs, quickstart, requirements checklist added
 ```
+````
 
 ## Notes
 
 - Ignore commits whose messages start with `[Spec Kit]` or `docs(spec-kit):` when deriving the PR title — those are housekeeping commits added by tooling.
 - If the diff contains only spec/docs changes, use type `docs` and scope `specs`.
 - Do not include a "Test plan" section — the project's CI covers that.
-- Do not wrap the output in a code fence when delivering it to the user.

@@ -1,13 +1,7 @@
 import { useState } from 'react';
-import {
-  Category,
-  ContractStatus,
-  BillingInterval,
-  CATEGORY_LABELS,
-  BILLING_INTERVAL_LABELS,
-  CANCELLATION_PERIOD_UNIT_LABELS,
-} from '@pcm/shared';
-import type { CreateContractBody, CancellationPeriodUnit } from '@pcm/shared';
+import { useTranslation } from 'react-i18next';
+import { Category, ContractStatus, BillingInterval, CancellationPeriodUnit } from '@pcm/shared';
+import type { CreateContractBody } from '@pcm/shared';
 
 interface ContractFormValues {
   name: string;
@@ -36,10 +30,11 @@ export function ContractForm({
   defaultValues,
   onSubmit,
   onCancel,
-  submitLabel = 'Save',
+  submitLabel,
   error,
   isPending,
 }: ContractFormProps) {
+  const { t } = useTranslation();
   const [values, setValues] = useState<ContractFormValues>({
     name: defaultValues?.name ?? '',
     category: defaultValues?.category ?? Category.SUBSCRIPTIONS,
@@ -60,12 +55,12 @@ export function ContractForm({
     setValidationError(null);
 
     if (!values.name.trim()) {
-      setValidationError('Name is required.');
+      setValidationError(t('contractForm.nameRequired'));
       return;
     }
     const amount = parseFloat(values.amount);
     if (isNaN(amount) || amount < 0) {
-      setValidationError('Amount must be a non-negative number.');
+      setValidationError(t('contractForm.amountInvalid'));
       return;
     }
 
@@ -123,6 +118,9 @@ export function ContractForm({
     // invalid URL — no link shown
   }
 
+  const categories = Object.values(Category);
+  const billingIntervals = Object.values(BillingInterval);
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {(validationError ?? error) && (
@@ -136,29 +134,29 @@ export function ContractForm({
 
       {field(
         'name',
-        'Name *',
+        t('contractForm.nameLabel'),
         <input
           id="name"
           type="text"
           value={values.name}
           onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
           className="rounded border px-3 py-1.5 text-sm"
-          placeholder="e.g. Netflix"
+          placeholder={t('contractForm.namePlaceholder')}
         />,
       )}
 
       {field(
         'category',
-        'Category *',
+        t('contractForm.categoryLabel'),
         <select
           id="category"
           value={values.category}
           onChange={(e) => setValues((v) => ({ ...v, category: e.target.value }))}
           className="rounded border px-3 py-1.5 text-sm"
         >
-          {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+          {categories.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {t(`category.${value}`)}
             </option>
           ))}
         </select>,
@@ -166,7 +164,7 @@ export function ContractForm({
 
       {field(
         'amount',
-        'Amount *',
+        t('contractForm.amountLabel'),
         <input
           id="amount"
           type="number"
@@ -181,16 +179,16 @@ export function ContractForm({
 
       {field(
         'billingInterval',
-        'Billing Interval *',
+        t('contractForm.billingIntervalLabel'),
         <select
           id="billingInterval"
           value={values.billingInterval}
           onChange={(e) => setValues((v) => ({ ...v, billingInterval: e.target.value }))}
           className="rounded border px-3 py-1.5 text-sm"
         >
-          {Object.entries(BILLING_INTERVAL_LABELS).map(([value, label]) => (
+          {billingIntervals.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {t(`billingInterval.${value}`)}
             </option>
           ))}
         </select>,
@@ -198,45 +196,46 @@ export function ContractForm({
 
       {field(
         'status',
-        'Status *',
+        t('contractForm.statusLabel'),
         <select
           id="status"
           value={values.status}
           onChange={(e) => setValues((v) => ({ ...v, status: e.target.value }))}
           className="rounded border px-3 py-1.5 text-sm"
         >
-          <option value={ContractStatus.ACTIVE}>Active</option>
-          <option value={ContractStatus.INACTIVE}>Inactive</option>
+          <option value={ContractStatus.ACTIVE}>{t('status.ACTIVE')}</option>
+          <option value={ContractStatus.INACTIVE}>{t('status.INACTIVE')}</option>
         </select>,
       )}
 
-      {field(
-        'endDate',
-        'End Date',
-        <input
-          id="endDate"
-          type="date"
-          value={values.endDate}
-          onChange={(e) => setValues((v) => ({ ...v, endDate: e.target.value }))}
-          className="rounded border px-3 py-1.5 text-sm"
-        />,
-      )}
-
-      {field(
-        'startDate',
-        'Start Date',
-        <input
-          id="startDate"
-          type="date"
-          value={values.startDate}
-          onChange={(e) => setValues((v) => ({ ...v, startDate: e.target.value }))}
-          className="rounded border px-3 py-1.5 text-sm"
-        />,
-      )}
+      <div className="grid grid-cols-2 gap-3">
+        {field(
+          'startDate',
+          t('contractForm.startDateLabel'),
+          <input
+            id="startDate"
+            type="date"
+            value={values.startDate}
+            onChange={(e) => setValues((v) => ({ ...v, startDate: e.target.value }))}
+            className="rounded border px-3 py-1.5 text-sm"
+          />,
+        )}
+        {field(
+          'endDate',
+          t('contractForm.endDateLabel'),
+          <input
+            id="endDate"
+            type="date"
+            value={values.endDate}
+            onChange={(e) => setValues((v) => ({ ...v, endDate: e.target.value }))}
+            className="rounded border px-3 py-1.5 text-sm"
+          />,
+        )}
+      </div>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="details" className="text-sm font-medium">
-          Details
+          {t('contractForm.detailsLabel')}
         </label>
         <textarea
           id="details"
@@ -245,7 +244,7 @@ export function ContractForm({
           className="rounded border px-3 py-1.5 text-sm"
           rows={3}
           maxLength={2000}
-          placeholder="Additional notes about this contract"
+          placeholder={t('contractForm.detailsPlaceholder')}
         />
         <span
           className={`text-right text-xs ${values.details.length >= 1900 ? 'text-red-600' : 'text-[--color-muted-foreground]'}`}
@@ -256,7 +255,7 @@ export function ContractForm({
 
       <div className="flex flex-col gap-1">
         <label htmlFor="serviceUrl" className="text-sm font-medium">
-          Service URL
+          {t('contractForm.serviceUrlLabel')}
         </label>
         <input
           id="serviceUrl"
@@ -264,14 +263,14 @@ export function ContractForm({
           value={values.serviceUrl}
           onChange={(e) => setValues((v) => ({ ...v, serviceUrl: e.target.value }))}
           className="rounded border px-3 py-1.5 text-sm"
-          placeholder="https://example.com"
+          placeholder={t('contractForm.serviceUrlPlaceholder')}
         />
         {serviceUrlLink}
       </div>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="cancellationPeriodValue" className="text-sm font-medium">
-          Cancellation Period
+          {t('contractForm.cancellationPeriodLabel')}
         </label>
         <div className="flex gap-2">
           <input
@@ -285,14 +284,14 @@ export function ContractForm({
           />
           <select
             id="cancellationPeriodUnit"
-            aria-label="Cancellation Unit"
+            aria-label={t('contractForm.cancellationUnitAriaLabel')}
             value={values.cancellationPeriodUnit}
             onChange={(e) => setValues((v) => ({ ...v, cancellationPeriodUnit: e.target.value }))}
             className="rounded border px-3 py-1.5 text-sm"
           >
-            {Object.entries(CANCELLATION_PERIOD_UNIT_LABELS).map(([value, label]) => (
+            {Object.values(CancellationPeriodUnit).map((value) => (
               <option key={value} value={value}>
-                {label}
+                {t(`cancellationUnit.${value}`)}
               </option>
             ))}
           </select>
@@ -305,14 +304,14 @@ export function ContractForm({
           disabled={isPending}
           className="rounded bg-foreground px-4 py-1.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
         >
-          {isPending ? 'Saving…' : submitLabel}
+          {isPending ? t('common.saving') : (submitLabel ?? t('common.save'))}
         </button>
         <button
           type="button"
           onClick={onCancel}
           className="rounded border px-4 py-1.5 text-sm hover:bg-[--color-muted]"
         >
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

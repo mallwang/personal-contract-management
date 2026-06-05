@@ -1,0 +1,98 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "contracts": "Contracts",
+    "addContract": "Add Contract",
+    "manageContracts": "Manage Contracts",
+    "backToDashboard": "← Dashboard"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "noData": "—"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive"
+  },
+  "category": {
+    "UTILITIES": "Utilities",
+    "SUBSCRIPTIONS": "Subscriptions",
+    "INSURANCE": "Insurance",
+    "HOUSING": "Housing",
+    "OTHER": "Other"
+  },
+  "billingInterval": {
+    "WEEKLY": "Weekly",
+    "MONTHLY": "Monthly",
+    "QUARTERLY": "Quarterly",
+    "YEARLY": "Yearly",
+    "LIFETIME": "Lifetime"
+  },
+  "cancellationUnit": {
+    "DAYS": "Days",
+    "WEEKS": "Weeks",
+    "MONTHS": "Months"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Your contract overview",
+    "monthlySpending": "Monthly Spending",
+    "monthlySpendingTooltip": "Average monthly cost across all active contracts. Yearly amounts ÷ 12, quarterly ÷ 3, weekly × 4.3. One-time (lifetime) contracts are excluded.",
+    "acrossActiveContracts": "across all active contracts",
+    "noActiveContracts": "No active contracts yet.",
+    "byCategory": "By Category",
+    "categoryColumn": "Category",
+    "contractsColumn": "Contracts",
+    "monthlyTotalColumn": "Monthly Total",
+    "noCategoryContracts": "No active contracts.",
+    "upcomingRenewals": "Upcoming Renewals",
+    "noRenewals": "No renewals due soon.",
+    "daysRemaining": "{{count}} days remaining",
+    "loadError": "Failed to load dashboard data. Please refresh the page."
+  },
+  "contractList": {
+    "title": "Contracts",
+    "noContracts": "No contracts yet. Add your first contract above.",
+    "nameColumn": "Name",
+    "categoryColumn": "Category",
+    "amountColumn": "Amount / Interval",
+    "statusColumn": "Status",
+    "endDateColumn": "End Date",
+    "actionsColumn": "Actions",
+    "deleteError": "Failed to delete contract. Please try again.",
+    "loadError": "Failed to load contracts."
+  },
+  "contractForm": {
+    "nameLabel": "Name *",
+    "namePlaceholder": "e.g. Netflix",
+    "categoryLabel": "Category *",
+    "amountLabel": "Amount *",
+    "billingIntervalLabel": "Billing Interval *",
+    "statusLabel": "Status *",
+    "endDateLabel": "End Date",
+    "startDateLabel": "Start Date",
+    "detailsLabel": "Details",
+    "detailsPlaceholder": "Additional notes about this contract",
+    "serviceUrlLabel": "Service URL",
+    "serviceUrlPlaceholder": "https://example.com",
+    "cancellationPeriodLabel": "Cancellation Period",
+    "cancellationUnitAriaLabel": "Cancellation Unit",
+    "nameRequired": "Name is required.",
+    "amountInvalid": "Amount must be a non-negative number."
+  },
+  "contractNew": {
+    "title": "Add Contract"
+  },
+  "contractEdit": {
+    "title": "Edit Contract",
+    "saveChanges": "Save Changes",
+    "loadError": "Failed to load contracts.",
+    "notFound": "Contract not found."
+  }
+}

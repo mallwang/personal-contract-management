@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Category, ContractStatus, BillingInterval, CancellationPeriodUnit } from '@pcm/shared';
 import type { CreateContractBody } from '@pcm/shared';
+import { ProviderLogo } from './ProviderLogo.js';
 
 interface ContractFormValues {
   name: string;
@@ -135,9 +136,13 @@ export function ContractForm({
         </p>
       )}
 
-      {field(
-        'name',
-        t('contractForm.nameLabel'),
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <label htmlFor="name" className="text-sm font-medium">
+            {t('contractForm.nameLabel')}
+          </label>
+          {values.name && <ProviderLogo name={values.name} size={20} />}
+        </div>
         <input
           id="name"
           type="text"
@@ -145,8 +150,8 @@ export function ContractForm({
           onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
           className="rounded border px-3 py-1.5 text-sm"
           placeholder={t('contractForm.namePlaceholder')}
-        />,
-      )}
+        />
+      </div>
 
       {field(
         'category',

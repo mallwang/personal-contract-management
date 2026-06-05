@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import type { ContractData } from '@pcm/shared';
 import { useLocaleFormat } from '../hooks/useLocaleFormat.js';
+import { CategoryIcon } from './CategoryIcon.js';
+import { ProviderLogo } from './ProviderLogo.js';
 
 type SortColumn = 'name' | 'category' | 'amount' | 'status' | 'endDate';
 type SortDirection = 'asc' | 'desc';
@@ -163,11 +165,26 @@ export function ContractTable({
           {sortedContracts.map((contract) => (
             <tr key={contract.id} className="border-b last:border-0">
               <td className="py-2 pr-4 font-medium">
-                <span className={isFlipping ? 'animate-name-flip' : undefined}>
-                  {resolveName(contract)}
+                <span className="flex items-center gap-2">
+                  <ProviderLogo
+                    name={contract.name}
+                    isAnonymized={displayAnonymized || contract.anonymize}
+                    size={20}
+                  />
+                  <span className={isFlipping ? 'animate-name-flip' : undefined}>
+                    {resolveName(contract)}
+                  </span>
                 </span>
               </td>
-              <td className="py-2 pr-4">{t(`category.${contract.category}`)}</td>
+              <td className="py-2 pr-4">
+                <span className="flex items-center gap-1.5">
+                  <CategoryIcon
+                    category={contract.category}
+                    className="h-4 w-4 shrink-0 text-[--color-muted-foreground]"
+                  />
+                  {t(`category.${contract.category}`)}
+                </span>
+              </td>
               <td className="py-2 pr-4 text-right">
                 {formatCurrency(contract.amount)}
                 {' / '}

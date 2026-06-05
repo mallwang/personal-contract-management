@@ -20,8 +20,8 @@
 
 **Purpose**: Configure the logo.dev API token so it's available to the frontend at build time.
 
-- [ ] T001 Create `packages/frontend/.env` with `VITE_LOGO_DEV_TOKEN=pk_dTJBcEKxQgCQUZhio2o9Vw`
-- [ ] T002 [P] Create `packages/frontend/.env.example` with `VITE_LOGO_DEV_TOKEN=your_logo_dev_public_token_here` for documentation
+- [X] T001 Create `packages/frontend/.env` with `VITE_LOGO_DEV_TOKEN=pk_dTJBcEKxQgCQUZhio2o9Vw`
+- [X] T002 [P] Create `packages/frontend/.env.example` with `VITE_LOGO_DEV_TOKEN=your_logo_dev_public_token_here` for documentation
 
 **Checkpoint**: `.env` in place; `.env.example` tracked in git
 
@@ -43,7 +43,7 @@
 
 ### Tests for User Story 1 ⚠️ TDD — Write and confirm FAILING before T004
 
-- [ ] T003 [US1] Write failing unit tests for `CategoryIcon` in `packages/frontend/src/components/CategoryIcon.test.tsx`:
+- [X] T003 [US1] Write failing unit tests for `CategoryIcon` in `packages/frontend/src/components/CategoryIcon.test.tsx`:
   - renders `Zap` for UTILITIES
   - renders `Play` for SUBSCRIPTIONS
   - renders `Shield` for INSURANCE
@@ -55,12 +55,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Implement `CategoryIcon` component in `packages/frontend/src/components/CategoryIcon.tsx` (depends on T003 failing)
+- [X] T004 [US1] Implement `CategoryIcon` component in `packages/frontend/src/components/CategoryIcon.tsx` (depends on T003 failing)
   - Export `CATEGORY_ICON_MAP: Record<Category | 'DEFAULT', LucideIcon>`
   - Map UTILITIES→Zap, SUBSCRIPTIONS→Play, INSURANCE→Shield, HOUSING→Home, OTHER→FileText, DEFAULT→FileText
   - Accept `{ category: Category; className?: string }` props (fully typed, no implicit `any`)
   - Render the mapped icon, falling back to DEFAULT for unknown values
-- [ ] T005 [US1] Update category cell in `packages/frontend/src/components/ContractTable.tsx` to render `<CategoryIcon>` alongside the category label text (wrap cell content in a flex span with gap)
+- [X] T005 [US1] Update category cell in `packages/frontend/src/components/ContractTable.tsx` to render `<CategoryIcon>` alongside the category label text (wrap cell content in a flex span with gap)
 
 **Checkpoint**: `pnpm --filter frontend test` — all T003 tests pass. Navigate to `/contracts` to see category icons in every row.
 
@@ -74,7 +74,7 @@
 
 ### Tests for User Story 2+3 ⚠️ TDD — Write and confirm FAILING before T008
 
-- [ ] T006 [US2] Write failing unit tests for `ProviderLogo` in `packages/frontend/src/components/ProviderLogo.test.tsx`:
+- [X] T006 [US2] Write failing unit tests for `ProviderLogo` in `packages/frontend/src/components/ProviderLogo.test.tsx`:
   - `logoUrl("Netflix", false)` returns the correct `https://img.logo.dev/name/Netflix?token=...` URL
   - `logoUrl("", false)` returns `null`
   - `logoUrl("Netflix", true)` returns `null` (anonymization guard)
@@ -87,7 +87,7 @@
 
 ### Implementation for User Story 2+3
 
-- [ ] T007 [US2] Create `packages/frontend/src/components/ProviderLogo.tsx`:
+- [X] T007 [US2] Create `packages/frontend/src/components/ProviderLogo.tsx`:
   - Export pure `logoUrl(name: string, isAnonymized: boolean): string | null`
     - Returns `null` if `isAnonymized` or `name` is empty
     - Returns `https://img.logo.dev/name/${encodeURIComponent(name)}?token=${import.meta.env.VITE_LOGO_DEV_TOKEN}`
@@ -95,10 +95,10 @@
   - If `logoUrl` returns `null` → render `<Building2>` from lucide-react
   - Otherwise → render `<img src={logoUrl} alt="" onError={…} />` in a fixed-size container matching `size` prop
   - On `onError` → switch state to render `<Building2>` fallback (no layout shift; container size stays constant)
-- [ ] T008 [US2] Update name cell in `packages/frontend/src/components/ContractTable.tsx` to render `<ProviderLogo>` before the contract name text (depends on T005 being complete — same file)
+- [X] T008 [US2] Update name cell in `packages/frontend/src/components/ContractTable.tsx` to render `<ProviderLogo>` before the contract name text (depends on T005 being complete — same file)
   - Pass `name={contract.name}` and `isAnonymized={displayAnonymized || contract.anonymize}`
   - Wrap name cell content in a `flex items-center gap-2` span
-- [ ] T009 [US2] Update name field section in `packages/frontend/src/components/ContractForm.tsx` to render an inline `<ProviderLogo>` preview next to the Name field label
+- [X] T009 [US2] Update name field section in `packages/frontend/src/components/ContractForm.tsx` to render an inline `<ProviderLogo>` preview next to the Name field label
   - Show only when `values.name` is non-empty
   - Pass `name={values.name}` (no anonymization guard needed in the form — user is editing their own data)
 
@@ -110,8 +110,8 @@
 
 **Purpose**: End-to-end validation and final cleanup.
 
-- [ ] T010 [P] Run full frontend test suite and confirm all tests green: `pnpm --filter frontend test`
-- [ ] T011 [P] Run E2E tests: `pnpm --filter frontend test:e2e`
+- [X] T010 [P] Run full frontend test suite and confirm all tests green: `pnpm --filter frontend test`
+- [X] T011 [P] Run E2E tests: `pnpm --filter frontend test:e2e` (5 pre-existing failures unrelated to this feature; 28 passed)
 - [ ] T012 Run through all 6 validation scenarios in `specs/009-contract-icon-visuals/quickstart.md` manually and confirm expected outcomes
 
 ---

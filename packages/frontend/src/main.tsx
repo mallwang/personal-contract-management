@@ -1,4 +1,5 @@
 import './index.css';
+import './i18n/index.js';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -7,6 +8,7 @@ import { Dashboard } from './pages/Dashboard.js';
 import { ContractList } from './pages/ContractList.js';
 import { ContractNew } from './pages/ContractNew.js';
 import { ContractEdit } from './pages/ContractEdit.js';
+import { Layout } from './components/Layout.js';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,12 +26,14 @@ createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/contracts" element={<ContractList />} />
-          <Route path="/contracts/new" element={<ContractNew />} />
-          <Route path="/contracts/:id/edit" element={<ContractEdit />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/contracts" element={<ContractList />} />
+            <Route path="/contracts/new" element={<ContractNew />} />
+            <Route path="/contracts/:id/edit" element={<ContractEdit />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,

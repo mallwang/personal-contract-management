@@ -90,8 +90,8 @@ describe('ContractTable – data display', () => {
         <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
       </MemoryRouter>,
     );
-    expect(screen.getByText('ACTIVE')).toBeInTheDocument();
-    expect(screen.getByText('INACTIVE')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(screen.getByText('Inactive')).toBeInTheDocument();
   });
 
   it('displays the end date when set', () => {

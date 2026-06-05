@@ -1,8 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useContracts, useUpdateContract } from '../services/contracts.js';
 import { ContractForm } from '../components/ContractForm.js';
 
 export function ContractEdit() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: contracts, isLoading, isError } = useContracts();
@@ -11,7 +13,7 @@ export function ContractEdit() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-muted-foreground]">Loading…</p>
+        <p className="text-[--color-muted-foreground]">{t('common.loading')}</p>
       </div>
     );
   }
@@ -19,7 +21,7 @@ export function ContractEdit() {
   if (isError || !contracts) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600">Failed to load contracts.</p>
+        <p className="text-red-600">{t('contractEdit.loadError')}</p>
       </div>
     );
   }
@@ -29,7 +31,7 @@ export function ContractEdit() {
   if (!contract) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-muted-foreground]">Contract not found.</p>
+        <p className="text-[--color-muted-foreground]">{t('contractEdit.notFound')}</p>
       </div>
     );
   }
@@ -38,7 +40,7 @@ export function ContractEdit() {
     <div className="min-h-screen bg-[--color-muted] p-6">
       <main className="mx-auto max-w-lg">
         <header className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Edit Contract</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('contractEdit.title')}</h1>
           <p className="text-sm text-[--color-muted-foreground]">{contract.name}</p>
         </header>
         <div className="rounded-lg bg-background p-6 shadow-sm">
@@ -65,7 +67,7 @@ export function ContractEdit() {
               )
             }
             onCancel={() => navigate('/contracts')}
-            submitLabel="Save Changes"
+            submitLabel={t('contractEdit.saveChanges')}
             isPending={isPending}
             error={error instanceof Error ? error.message : null}
           />

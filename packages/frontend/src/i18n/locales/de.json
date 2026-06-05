@@ -1,0 +1,98 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "contracts": "Verträge",
+    "addContract": "Vertrag hinzufügen",
+    "manageContracts": "Verträge verwalten",
+    "backToDashboard": "← Dashboard"
+  },
+  "common": {
+    "loading": "Laden…",
+    "save": "Speichern",
+    "saving": "Speichert…",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "noData": "—"
+  },
+  "status": {
+    "ACTIVE": "Aktiv",
+    "INACTIVE": "Inaktiv"
+  },
+  "category": {
+    "UTILITIES": "Versorgungsleistungen",
+    "SUBSCRIPTIONS": "Abonnements",
+    "INSURANCE": "Versicherungen",
+    "HOUSING": "Wohnen",
+    "OTHER": "Sonstiges"
+  },
+  "billingInterval": {
+    "WEEKLY": "Wöchentlich",
+    "MONTHLY": "Monatlich",
+    "QUARTERLY": "Vierteljährlich",
+    "YEARLY": "Jährlich",
+    "LIFETIME": "Einmalig"
+  },
+  "cancellationUnit": {
+    "DAYS": "Tage",
+    "WEEKS": "Wochen",
+    "MONTHS": "Monate"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Ihre Vertragsübersicht",
+    "monthlySpending": "Monatliche Ausgaben",
+    "monthlySpendingTooltip": "Durchschnittliche monatliche Kosten aller aktiven Verträge. Jährliche Beträge ÷ 12, vierteljährliche ÷ 3, wöchentliche × 4,3. Einmalige Verträge werden nicht berücksichtigt.",
+    "acrossActiveContracts": "über alle aktiven Verträge",
+    "noActiveContracts": "Noch keine aktiven Verträge.",
+    "byCategory": "Nach Kategorie",
+    "categoryColumn": "Kategorie",
+    "contractsColumn": "Verträge",
+    "monthlyTotalColumn": "Monatssumme",
+    "noCategoryContracts": "Keine aktiven Verträge.",
+    "upcomingRenewals": "Bevorstehende Verlängerungen",
+    "noRenewals": "Keine bevorstehenden Verlängerungen.",
+    "daysRemaining": "{{count}} Tage verbleibend",
+    "loadError": "Dashboard-Daten konnten nicht geladen werden. Bitte Seite neu laden."
+  },
+  "contractList": {
+    "title": "Verträge",
+    "noContracts": "Noch keine Verträge. Fügen Sie oben Ihren ersten Vertrag hinzu.",
+    "nameColumn": "Name",
+    "categoryColumn": "Kategorie",
+    "amountColumn": "Betrag / Intervall",
+    "statusColumn": "Status",
+    "endDateColumn": "Enddatum",
+    "actionsColumn": "Aktionen",
+    "deleteError": "Vertrag konnte nicht gelöscht werden. Bitte erneut versuchen.",
+    "loadError": "Verträge konnten nicht geladen werden."
+  },
+  "contractForm": {
+    "nameLabel": "Name *",
+    "namePlaceholder": "z.B. Netflix",
+    "categoryLabel": "Kategorie *",
+    "amountLabel": "Betrag *",
+    "billingIntervalLabel": "Abrechnungsintervall *",
+    "statusLabel": "Status *",
+    "endDateLabel": "Enddatum",
+    "startDateLabel": "Startdatum",
+    "detailsLabel": "Details",
+    "detailsPlaceholder": "Weitere Hinweise zu diesem Vertrag",
+    "serviceUrlLabel": "Anbieter-URL",
+    "serviceUrlPlaceholder": "https://example.com",
+    "cancellationPeriodLabel": "Kündigungsfrist",
+    "cancellationUnitAriaLabel": "Kündigungseinheit",
+    "nameRequired": "Name ist erforderlich.",
+    "amountInvalid": "Betrag muss eine nicht-negative Zahl sein."
+  },
+  "contractNew": {
+    "title": "Vertrag hinzufügen"
+  },
+  "contractEdit": {
+    "title": "Vertrag bearbeiten",
+    "saveChanges": "Änderungen speichern",
+    "loadError": "Verträge konnten nicht geladen werden.",
+    "notFound": "Vertrag nicht gefunden."
+  }
+}

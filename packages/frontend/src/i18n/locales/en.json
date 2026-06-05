@@ -54,6 +54,9 @@
     "upcomingRenewals": "Upcoming Renewals",
     "noRenewals": "No renewals due soon.",
     "daysRemaining": "{{count}} days remaining",
+    "expiredContracts": "Expired Contracts",
+    "noExpiredContracts": "No expired contracts.",
+    "daysOverdue": "{{count}} days overdue",
     "loadError": "Failed to load dashboard data. Please refresh the page."
   },
   "contractList": {

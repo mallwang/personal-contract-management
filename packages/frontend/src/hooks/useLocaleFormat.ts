@@ -14,7 +14,11 @@ export function useLocaleFormat() {
   }
 
   function formatDate(iso: string): string {
-    return new Intl.DateTimeFormat(locale).format(new Date(iso));
+    return new Intl.DateTimeFormat(locale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(iso));
   }
 
   return { formatCurrency, formatDate };

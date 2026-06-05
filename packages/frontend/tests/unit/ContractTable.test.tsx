@@ -96,13 +96,18 @@ describe('ContractTable – data display', () => {
     expect(screen.getByText('Inactive')).toBeInTheDocument();
   });
 
-  it('displays the end date when set', () => {
+  it('displays the end date formatted for the active locale', () => {
     render(
       <MemoryRouter>
         <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
       </MemoryRouter>,
     );
-    expect(screen.getByText('2026-12-31')).toBeInTheDocument();
+    const formatted = new Intl.DateTimeFormat('en', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date('2026-12-31'));
+    expect(screen.getByText(formatted)).toBeInTheDocument();
   });
 
   it('displays a dash when end date is null', () => {

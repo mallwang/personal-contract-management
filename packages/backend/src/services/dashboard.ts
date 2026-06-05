@@ -1,5 +1,10 @@
 import type Database from 'better-sqlite3';
-import type { DashboardResponse, CategorySummary, UpcomingRenewal } from '@pcm/shared';
+import type {
+  DashboardResponse,
+  CategorySummary,
+  UpcomingRenewal,
+  ExpiredContract,
+} from '@pcm/shared';
 import { CATEGORY_LABELS, type Category } from '@pcm/shared';
 
 const MONTHLY_FACTOR_SQL = `
@@ -19,7 +24,8 @@ export class DashboardService {
     const totalMonthlySpending = this.getTotalMonthlySpending();
     const contractsByCategory = this.getContractsByCategory();
     const upcomingRenewals = this.getUpcomingRenewals();
-    return { totalMonthlySpending, contractsByCategory, upcomingRenewals };
+    const expiredContracts = this.getExpiredContracts();
+    return { totalMonthlySpending, contractsByCategory, upcomingRenewals, expiredContracts };
   }
 
   private getTotalMonthlySpending(): number {
@@ -80,6 +86,39 @@ export class DashboardService {
         category: row.category as Category,
         endDate: row.end_date,
         daysRemaining,
+      };
+    });
+  }
+
+  private getExpiredContracts(): ExpiredContract[] {
+    const rows = this.db
+      .prepare<
+        [],
+        { id: string; name: string; category: string; end_date: string; anonymize: number }
+      >(
+        `SELECT id, name, category, end_date, anonymize
+         FROM contracts
+         WHERE end_date IS NOT NULL
+           AND billing_interval != 'LIFETIME'
+           AND end_date < DATE('now')
+         ORDER BY end_date DESC`,
+      )
+      .all();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return rows.map((row) => {
+      const end = new Date(row.end_date);
+      end.setHours(0, 0, 0, 0);
+      const daysOverdue = Math.round((today.getTime() - end.getTime()) / 86_400_000);
+      return {
+        id: row.id,
+        name: row.name,
+        category: row.category as Category,
+        endDate: row.end_date,
+        daysOverdue,
+        anonymize: row.anonymize !== 0,
       };
     });
   }

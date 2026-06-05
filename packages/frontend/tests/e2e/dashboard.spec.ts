@@ -41,4 +41,16 @@ test.describe('Welcome Dashboard', () => {
       page.locator('.spending-overview__total, .spending-overview__empty'),
     ).toBeVisible();
   });
+
+  test('US4 – shows expired contracts section heading', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /expired contracts/i })).toBeVisible();
+  });
+
+  test('US4 – expired contracts panel has neutral empty state when no contracts are expired', async ({
+    page,
+  }) => {
+    await expect(page.getByText(/no expired contracts/i)).toBeVisible();
+    const section = page.getByRole('region', { name: /expired contracts/i });
+    await expect(section.locator('.border-amber-200')).toHaveCount(0);
+  });
 });

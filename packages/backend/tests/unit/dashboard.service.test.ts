@@ -19,6 +19,7 @@ function insertContract(
     billing_interval: string;
     status: string;
     end_date: string | null;
+    anonymize: number;
   }> = {},
 ) {
   const row = {
@@ -29,13 +30,14 @@ function insertContract(
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
+    anonymize: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
   };
   db.prepare(
-    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at)
-     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at)`,
+    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, anonymize, created_at, updated_at)
+     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @anonymize, @created_at, @updated_at)`,
   ).run(row);
   return row;
 }
@@ -265,5 +267,95 @@ describe('DashboardService – upcomingRenewals', () => {
     });
     const result = service.getDashboardData();
     expect(result.upcomingRenewals).toHaveLength(0);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Expired Contracts
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('DashboardService – expiredContracts', () => {
+  let db: Database.Database;
+  let service: DashboardService;
+
+  function daysAgo(days: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function daysFromNow(days: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  beforeEach(() => {
+    db = makeDb();
+    service = new DashboardService(db);
+  });
+
+  it('returns empty array when no contracts have a past end_date', () => {
+    insertContract(db, { end_date: null });
+    insertContract(db, { end_date: daysFromNow(10) });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts).toEqual([]);
+  });
+
+  it('returns contracts whose end_date is strictly before today', () => {
+    insertContract(db, { name: 'Expired', end_date: daysAgo(5) });
+    insertContract(db, { name: 'Future', end_date: daysFromNow(5) });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts).toHaveLength(1);
+    expect(result.expiredContracts[0]?.name).toBe('Expired');
+  });
+
+  it('excludes contracts with null end_date', () => {
+    insertContract(db, { name: 'NoDate', end_date: null });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts).toEqual([]);
+  });
+
+  it('excludes LIFETIME contracts even with a past end_date', () => {
+    insertContract(db, {
+      name: 'Lifetime Old',
+      billing_interval: 'LIFETIME',
+      end_date: daysAgo(10),
+    });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts).toHaveLength(0);
+  });
+
+  it('includes both ACTIVE and INACTIVE contracts with a past end_date', () => {
+    insertContract(db, { name: 'ActiveExpired', end_date: daysAgo(3), status: 'ACTIVE' });
+    insertContract(db, { name: 'InactiveExpired', end_date: daysAgo(7), status: 'INACTIVE' });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts).toHaveLength(2);
+  });
+
+  it('orders by end_date descending (most-recently-expired first)', () => {
+    insertContract(db, { name: 'LongAgo', end_date: daysAgo(30) });
+    insertContract(db, { name: 'Recent', end_date: daysAgo(2) });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts[0]?.name).toBe('Recent');
+    expect(result.expiredContracts[1]?.name).toBe('LongAgo');
+  });
+
+  it('computes daysOverdue correctly', () => {
+    insertContract(db, { name: 'Overdue5', end_date: daysAgo(5) });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts[0]?.daysOverdue).toBe(5);
+  });
+
+  it('maps anonymize column to boolean (false when 0)', () => {
+    insertContract(db, { name: 'Public', end_date: daysAgo(3), anonymize: 0 });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts[0]?.anonymize).toBe(false);
+  });
+
+  it('maps anonymize column to boolean (true when 1)', () => {
+    insertContract(db, { name: 'Private', end_date: daysAgo(3), anonymize: 1 });
+    const result = service.getDashboardData();
+    expect(result.expiredContracts[0]?.anonymize).toBe(true);
   });
 });

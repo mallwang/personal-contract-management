@@ -3,6 +3,7 @@ import type { UpcomingRenewal } from '@pcm/shared';
 import { CalendarClock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card.js';
 import { Badge } from './ui/badge.js';
+import { useLocaleFormat } from '../hooks/useLocaleFormat.js';
 
 interface UpcomingRenewalsProps {
   upcomingRenewals: UpcomingRenewal[];
@@ -14,6 +15,7 @@ function urgencyVariant(days: number): 'warning' | 'secondary' {
 
 export function UpcomingRenewals({ upcomingRenewals }: UpcomingRenewalsProps) {
   const { t } = useTranslation();
+  const { formatDate } = useLocaleFormat();
 
   return (
     <Card>
@@ -41,7 +43,7 @@ export function UpcomingRenewals({ upcomingRenewals }: UpcomingRenewalsProps) {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="upcoming-renewals__date text-xs text-[--color-muted-foreground]">
-                    {renewal.endDate}
+                    {formatDate(renewal.endDate)}
                   </span>
                   <Badge variant={urgencyVariant(renewal.daysRemaining)}>
                     {t('dashboard.daysRemaining', { count: renewal.daysRemaining })}

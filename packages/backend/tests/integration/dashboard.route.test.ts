@@ -15,6 +15,7 @@ function insertContract(
     billing_interval: string;
     status: string;
     end_date: string | null;
+    anonymize: number;
   }> = {},
 ) {
   const row = {
@@ -25,13 +26,14 @@ function insertContract(
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
+    anonymize: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
   };
   db.prepare(
-    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at)
-     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at)`,
+    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, anonymize, created_at, updated_at)
+     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @anonymize, @created_at, @updated_at)`,
   ).run(row);
 }
 
@@ -65,6 +67,7 @@ describe('GET /api/dashboard', () => {
       totalMonthlySpending: 0,
       contractsByCategory: [],
       upcomingRenewals: [],
+      expiredContracts: [],
     });
   });
 
@@ -158,5 +161,32 @@ describe('GET /api/dashboard', () => {
     const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ upcomingRenewals: Array<unknown> }>();
     expect(body.upcomingRenewals).toHaveLength(0);
+  });
+
+  it('returns expiredContracts for contracts with a past end_date', async () => {
+    const pastDate = daysFromNow(-10);
+    insertContract(db, { name: 'Old Contract', end_date: pastDate, status: 'ACTIVE' });
+    insertContract(db, { name: 'Current Contract', end_date: daysFromNow(10), status: 'ACTIVE' });
+    insertContract(db, { name: 'No Date', end_date: null, status: 'ACTIVE' });
+    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const body = res.json<{
+      expiredContracts: Array<{ name: string; daysOverdue: number; endDate: string }>;
+    }>();
+    expect(body.expiredContracts).toHaveLength(1);
+    expect(body.expiredContracts[0]?.name).toBe('Old Contract');
+    expect(body.expiredContracts[0]?.daysOverdue).toBe(10);
+    expect(body.expiredContracts[0]?.endDate).toBe(pastDate);
+  });
+
+  it('excludes LIFETIME contracts from expiredContracts even with a past end_date', async () => {
+    insertContract(db, {
+      name: 'Lifetime Old',
+      billing_interval: 'LIFETIME',
+      end_date: daysFromNow(-5),
+      status: 'ACTIVE',
+    });
+    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const body = res.json<{ expiredContracts: Array<unknown> }>();
+    expect(body.expiredContracts).toHaveLength(0);
   });
 });

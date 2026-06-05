@@ -54,6 +54,9 @@
     "upcomingRenewals": "Bevorstehende Verlängerungen",
     "noRenewals": "Keine bevorstehenden Verlängerungen.",
     "daysRemaining": "{{count}} Tage verbleibend",
+    "expiredContracts": "Abgelaufene Verträge",
+    "noExpiredContracts": "Keine abgelaufenen Verträge.",
+    "daysOverdue": "{{count}} Tage überfällig",
     "loadError": "Dashboard-Daten konnten nicht geladen werden. Bitte Seite neu laden."
   },
   "contractList": {

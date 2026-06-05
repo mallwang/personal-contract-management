@@ -33,4 +33,23 @@ describe('useLocaleFormat', () => {
       expect(formatted).toContain('€');
     });
   });
+
+  describe('formatDate', () => {
+    it('formats an ISO date string in English locale (MM/DD/YYYY)', () => {
+      const { result } = renderHook(() => useLocaleFormat());
+      const formatted = result.current.formatDate('2026-05-27');
+      // English locale with 2-digit padding: 05/27/2026
+      expect(formatted).toMatch(/05[\/.]27[\/.]2026|27[\/.]05[\/.]2026/);
+      expect(formatted).toContain('2026');
+      expect(formatted).not.toBe('2026-05-27');
+    });
+
+    it('formats an ISO date string in German locale (DD.MM.YYYY)', async () => {
+      await i18n.changeLanguage('de');
+      const { result } = renderHook(() => useLocaleFormat());
+      const formatted = result.current.formatDate('2026-05-27');
+      // German locale with 2-digit padding: 27.05.2026
+      expect(formatted).toBe('27.05.2026');
+    });
+  });
 });

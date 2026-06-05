@@ -4,6 +4,7 @@ import { useDashboard } from '../services/api.js';
 import { SpendingOverview } from '../components/SpendingOverview.js';
 import { CategoryBreakdown } from '../components/CategoryBreakdown.js';
 import { UpcomingRenewals } from '../components/UpcomingRenewals.js';
+import { ExpiredContracts } from '../components/ExpiredContracts.js';
 
 export function Dashboard() {
   const { t } = useTranslation();
@@ -52,6 +53,10 @@ export function Dashboard() {
 
           <section aria-label={t('dashboard.upcomingRenewals')} className="sm:col-span-3">
             <UpcomingRenewals upcomingRenewals={data.upcomingRenewals} />
+          </section>
+
+          <section aria-label={t('dashboard.expiredContracts')} className="sm:col-span-3">
+            <ExpiredContracts expiredContracts={data.expiredContracts} />
           </section>
         </div>
       </main>

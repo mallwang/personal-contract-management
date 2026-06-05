@@ -38,9 +38,14 @@ describe('UpcomingRenewals', () => {
     expect(screen.getByText(/21 days/i)).toBeInTheDocument();
   });
 
-  it('renders the end date for each contract', () => {
+  it('renders the end date for each contract formatted for the active locale', () => {
     render(<UpcomingRenewals upcomingRenewals={sampleData} />);
-    expect(screen.getByText(/2026-06-19/)).toBeInTheDocument();
+    const formatted = new Intl.DateTimeFormat('en', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date('2026-06-19'));
+    expect(screen.getByText(formatted)).toBeInTheDocument();
   });
 
   it('renders empty-state message when array is empty', () => {

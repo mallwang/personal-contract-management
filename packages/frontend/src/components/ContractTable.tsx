@@ -27,7 +27,7 @@ export function ContractTable({
   getDisplayName,
 }: ContractTableProps) {
   const { t } = useTranslation();
-  const { formatCurrency } = useLocaleFormat();
+  const { formatCurrency, formatDate } = useLocaleFormat();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
 
@@ -174,7 +174,9 @@ export function ContractTable({
                 {t(`billingInterval.${contract.billingInterval}`)}
               </td>
               <td className="py-2 pr-4">{t(`status.${contract.status}`)}</td>
-              <td className="py-2 pr-4">{contract.endDate ?? t('common.noData')}</td>
+              <td className="py-2 pr-4">
+                {contract.endDate ? formatDate(contract.endDate) : t('common.noData')}
+              </td>
               <td className="py-2">
                 {pendingDeleteId === contract.id ? (
                   <span className="inline-flex gap-2">

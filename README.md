@@ -1,11 +1,20 @@
+**English** · [Deutsch](README.de.md)
+
 # Personal Contract Management
 
 A personal web app for tracking contracts — subscriptions, insurance, housing, utilities, and more. Get an instant overview of your monthly spending and stay ahead of upcoming renewals.
 
 ## Features
 
-- **Dashboard** — total active monthly spending, breakdown by category, and contracts expiring within 30 days
-- More features coming soon (contract management, notifications, …)
+- **Dashboard** — total active monthly spending, category breakdown, upcoming renewals (within 30 days), and expired contracts
+- **Contract list** — sortable table with provider logos and category icons
+- **Create / edit / delete** contracts with 14 fields including cancellation notice periods
+- **Export** — download all contracts as JSON or Excel (.xlsx)
+- **Import** — upload JSON or Excel with intelligent column auto-mapping
+- **Anonymization** — hide real contract names globally or per contract using deterministic fantasy names
+- **Localization** — English and German with locale-aware currency and date formatting
+
+For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md).
 
 ## Tech stack
 

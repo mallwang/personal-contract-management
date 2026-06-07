@@ -13,6 +13,7 @@ A personal web app for tracking contracts — subscriptions, insurance, housing,
 - **Import** — upload JSON or Excel with intelligent column auto-mapping
 - **Anonymization** — hide real contract names globally or per contract using deterministic fantasy names
 - **Localization** — English and German with locale-aware currency and date formatting
+- **Multi-user accounts** — every family member signs in with their own account; contracts, dashboards, exports, and imports are scoped per account, and administrators can create, archive, reactivate, and manage roles for other accounts
 
 For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md).
 
@@ -48,6 +49,10 @@ pnpm dev
 Open [http://localhost:5173](http://localhost:5173).
 
 The backend API runs at [http://localhost:3000](http://localhost:3000).
+
+### Signing in
+
+The app requires every visitor to sign in. On a fresh database, `db:migrate` automatically creates a bootstrap **administrator** account and prints its email and a one-time password to the backend's console output — sign in with those credentials and change the password right away from "My Account". `db:seed` additionally creates two ready-to-use development accounts: `admin@example.test` / `dev-admin-pass` (administrator) and `member@example.test` / `dev-member-pass` (member). See [Accounts & sign-in](docs/user-guide.md#10-accounts--sign-in) in the user guide for details.
 
 ## Running tests
 
@@ -89,6 +94,8 @@ docker compose up -d
 ```
 
 The app is then available at **http://localhost:3001**. The SQLite database is stored at `./data/contracts.db` on the host, so it survives container restarts and recreation.
+
+On first start with a fresh database, the bootstrap administrator account's email and one-time password are printed to the container's logs — run `docker compose logs` to find them, sign in, and change the password immediately.
 
 **Changing the host port**: edit the `ports:` line in `docker-compose.yml` — only the left-hand side (host port) needs to change, e.g. `"9090:3000"` exposes the app on port 9090.
 

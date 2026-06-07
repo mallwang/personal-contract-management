@@ -38,29 +38,30 @@ function rowToContract(row: ContractRow): ContractData {
 export class ContractService {
   constructor(private readonly db: Database.Database) {}
 
-  list(): ContractData[] {
+  list(ownerId: string): ContractData[] {
     const rows = this.db
-      .prepare<[], ContractRow>(`SELECT * FROM contracts ORDER BY name ASC`)
-      .all();
+      .prepare<[string], ContractRow>(`SELECT * FROM contracts WHERE user_id = ? ORDER BY name ASC`)
+      .all(ownerId);
     return rows.map(rowToContract);
   }
 
-  create(body: CreateContractBody): ContractData {
+  create(body: CreateContractBody, ownerId: string): ContractData {
     const now = new Date().toISOString();
     const id = randomUUID();
     this.db
       .prepare(
-        `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date,
+        `INSERT INTO contracts (id, user_id, name, category, amount, billing_interval, status, end_date,
                                 start_date, details, service_url,
                                 cancellation_period_value, cancellation_period_unit,
                                 anonymize, created_at, updated_at)
-         VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date,
+         VALUES (@id, @user_id, @name, @category, @amount, @billing_interval, @status, @end_date,
                  @start_date, @details, @service_url,
                  @cancellation_period_value, @cancellation_period_unit,
                  @anonymize, @created_at, @updated_at)`,
       )
       .run({
         id,
+        user_id: ownerId,
         name: body.name,
         category: body.category,
         amount: body.amount,
@@ -82,10 +83,13 @@ export class ContractService {
     return rowToContract(row);
   }
 
-  update(id: string, body: UpdateContractBody): ContractData | null {
+  update(id: string, body: UpdateContractBody, ownerId: string): ContractData | null {
     const existing = this.db
-      .prepare<[string], ContractRow>(`SELECT * FROM contracts WHERE id = ?`)
-      .get(id);
+      .prepare<
+        [string, string],
+        ContractRow
+      >(`SELECT * FROM contracts WHERE id = ? AND user_id = ?`)
+      .get(id, ownerId);
     if (!existing) return null;
 
     const now = new Date().toISOString();
@@ -128,8 +132,10 @@ export class ContractService {
     return rowToContract(updated);
   }
 
-  delete(id: string): boolean {
-    const result = this.db.prepare(`DELETE FROM contracts WHERE id = ?`).run(id);
+  delete(id: string, ownerId: string): boolean {
+    const result = this.db
+      .prepare(`DELETE FROM contracts WHERE id = ? AND user_id = ?`)
+      .run(id, ownerId);
     return result.changes > 0;
   }
 }

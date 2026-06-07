@@ -1,4 +1,5 @@
 import { createDb, runMigrations } from './client.js';
+import { hashPassword } from '../services/password.js';
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,26 @@ function addDays(days: number): string {
 
 const SEED_CREATED_AT = '2026-01-01T00:00:00.000Z';
 
+const SEED_ADMIN_ID = '00000000-0000-0000-0000-0000000000a1';
+const SEED_MEMBER_ID = '00000000-0000-0000-0000-0000000000a2';
+
+const seedAccounts = [
+  {
+    id: SEED_ADMIN_ID,
+    email: 'admin@example.test',
+    display_name: 'Dev Administrator',
+    password: 'dev-admin-pass',
+    role: 'ADMIN',
+  },
+  {
+    id: SEED_MEMBER_ID,
+    email: 'member@example.test',
+    display_name: 'Dev Member',
+    password: 'dev-member-pass',
+    role: 'MEMBER',
+  },
+];
+
 const seeds = [
   {
     id: '00000000-0000-0000-0000-000000000001',
@@ -23,6 +44,7 @@ const seeds = [
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
+    user_id: SEED_ADMIN_ID,
   },
   {
     id: '00000000-0000-0000-0000-000000000002',
@@ -32,6 +54,7 @@ const seeds = [
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
+    user_id: SEED_ADMIN_ID,
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
@@ -41,6 +64,7 @@ const seeds = [
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
+    user_id: SEED_ADMIN_ID,
   },
   {
     id: '00000000-0000-0000-0000-000000000004',
@@ -50,6 +74,7 @@ const seeds = [
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: () => addDays(15),
+    user_id: SEED_MEMBER_ID,
   },
   {
     id: '00000000-0000-0000-0000-000000000005',
@@ -59,6 +84,7 @@ const seeds = [
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
+    user_id: SEED_MEMBER_ID,
   },
   {
     id: '00000000-0000-0000-0000-000000000006',
@@ -68,6 +94,7 @@ const seeds = [
     billing_interval: 'MONTHLY',
     status: 'ACTIVE',
     end_date: null,
+    user_id: SEED_ADMIN_ID,
   },
   {
     id: '00000000-0000-0000-0000-000000000007',
@@ -77,6 +104,7 @@ const seeds = [
     billing_interval: 'QUARTERLY',
     status: 'ACTIVE',
     end_date: null,
+    user_id: SEED_MEMBER_ID,
   },
   {
     id: '00000000-0000-0000-0000-000000000008',
@@ -86,8 +114,36 @@ const seeds = [
     billing_interval: 'MONTHLY',
     status: 'INACTIVE',
     end_date: null,
+    user_id: SEED_MEMBER_ID,
   },
 ];
+
+function seedAccountsIfMissing(db: Database.Database): void {
+  const insertAccount = db.prepare(`
+    INSERT INTO users (id, email, display_name, password_hash, password_salt, role, status, created_at, updated_at)
+    VALUES (@id, @email, @display_name, @password_hash, @password_salt, @role, 'ACTIVE', @created_at, @updated_at)
+    ON CONFLICT(id) DO NOTHING
+  `);
+  const insertMany = db.transaction(() => {
+    for (const account of seedAccounts) {
+      const { hash, salt } = hashPassword(account.password);
+      insertAccount.run({
+        id: account.id,
+        email: account.email,
+        display_name: account.display_name,
+        password_hash: hash,
+        password_salt: salt,
+        role: account.role,
+        created_at: SEED_CREATED_AT,
+        updated_at: SEED_CREATED_AT,
+      });
+    }
+  });
+  insertMany();
+  console.log(
+    `Seeded ${seedAccounts.length} dev accounts (credentials: admin@example.test / dev-admin-pass, member@example.test / dev-member-pass).`,
+  );
+}
 
 function runSeed(db: Database.Database, { force = false } = {}): void {
   const existing = (db.prepare(`SELECT COUNT(*) as n FROM contracts`).get() as { n: number }).n;
@@ -95,9 +151,10 @@ function runSeed(db: Database.Database, { force = false } = {}): void {
     console.log(`Skipping seed: ${existing} contracts already exist. Use --force to override.`);
     return;
   }
+  seedAccountsIfMissing(db);
   const upsert = db.prepare(`
-    INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at)
-    VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at)
+    INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, user_id, created_at, updated_at)
+    VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @user_id, @created_at, @updated_at)
     ON CONFLICT(id) DO UPDATE SET
       name             = excluded.name,
       category         = excluded.category,
@@ -105,6 +162,7 @@ function runSeed(db: Database.Database, { force = false } = {}): void {
       billing_interval = excluded.billing_interval,
       status           = excluded.status,
       end_date         = excluded.end_date,
+      user_id          = excluded.user_id,
       updated_at       = excluded.updated_at
   `);
   const upsertMany = db.transaction(() => {
@@ -117,6 +175,7 @@ function runSeed(db: Database.Database, { force = false } = {}): void {
         billing_interval: row.billing_interval,
         status: row.status,
         end_date: typeof row.end_date === 'function' ? row.end_date() : row.end_date,
+        user_id: row.user_id,
         created_at: SEED_CREATED_AT,
         updated_at: new Date().toISOString(),
       });

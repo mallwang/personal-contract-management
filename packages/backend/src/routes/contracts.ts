@@ -11,9 +11,9 @@ import { ContractService } from '../services/contract.js';
 const IdParams = z.object({ id: z.string().uuid() });
 
 export async function contractRoutes(fastify: FastifyInstance): Promise<void> {
-  fastify.get('/api/contracts', async (_request, reply) => {
+  fastify.get('/api/contracts', async (request, reply) => {
     const service = new ContractService(fastify.db);
-    const contracts = service.list();
+    const contracts = service.list(request.user!.id);
     return reply.send(ContractListResponseSchema.parse(contracts));
   });
 
@@ -27,7 +27,7 @@ export async function contractRoutes(fastify: FastifyInstance): Promise<void> {
       });
     }
     const service = new ContractService(fastify.db);
-    const contract = service.create(body.data);
+    const contract = service.create(body.data, request.user!.id);
     return reply.status(201).send(ContractSchema.parse(contract));
   });
 
@@ -58,7 +58,7 @@ export async function contractRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     const service = new ContractService(fastify.db);
-    const updated = service.update(params.data.id, body.data);
+    const updated = service.update(params.data.id, body.data, request.user!.id);
     if (!updated) {
       return reply
         .status(404)
@@ -75,7 +75,7 @@ export async function contractRoutes(fastify: FastifyInstance): Promise<void> {
         .send({ statusCode: 400, error: 'Bad Request', message: 'Invalid ID' });
     }
     const service = new ContractService(fastify.db);
-    const deleted = service.delete(params.data.id);
+    const deleted = service.delete(params.data.id, request.user!.id);
     if (!deleted) {
       return reply
         .status(404)

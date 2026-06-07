@@ -9,8 +9,19 @@ function makeDb(): Database.Database {
   return db;
 }
 
+function insertOwner(db: Database.Database): string {
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO users (id, email, display_name, password_hash, password_salt, role, status, created_at, updated_at)
+     VALUES (?, ?, 'Test Owner', 'hash', 'salt', 'ADMIN', 'ACTIVE', ?, ?)`,
+  ).run(id, `${id}@example.test`, now, now);
+  return id;
+}
+
 function insertContract(
   db: Database.Database,
+  ownerId: string,
   overrides: Partial<{
     id: string;
     name: string;
@@ -31,11 +42,12 @@ function insertContract(
     end_date: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    user_id: ownerId,
     ...overrides,
   };
   db.prepare(
-    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at)
-     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at)`,
+    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, created_at, updated_at, user_id)
+     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @created_at, @updated_at, @user_id)`,
   ).run(row);
   return row;
 }
@@ -43,32 +55,34 @@ function insertContract(
 describe('ContractService – list', () => {
   let db: Database.Database;
   let service: ContractService;
+  let ownerId: string;
 
   beforeEach(() => {
     db = makeDb();
     service = new ContractService(db);
+    ownerId = insertOwner(db);
   });
 
   it('returns empty array when no contracts exist', () => {
-    expect(service.list()).toEqual([]);
+    expect(service.list(ownerId)).toEqual([]);
   });
 
   it('returns all contracts sorted by name ascending', () => {
-    insertContract(db, { name: 'Zebra' });
-    insertContract(db, { name: 'Apple' });
-    insertContract(db, { name: 'Mango' });
-    const result = service.list();
+    insertContract(db, ownerId, { name: 'Zebra' });
+    insertContract(db, ownerId, { name: 'Apple' });
+    insertContract(db, ownerId, { name: 'Mango' });
+    const result = service.list(ownerId);
     expect(result.map((c) => c.name)).toEqual(['Apple', 'Mango', 'Zebra']);
   });
 
   it('maps snake_case columns to camelCase fields', () => {
-    const row = insertContract(db, {
+    const row = insertContract(db, ownerId, {
       name: 'Netflix',
       amount: 15.99,
       billing_interval: 'MONTHLY',
       end_date: '2026-12-31',
     });
-    const result = service.list();
+    const result = service.list(ownerId);
     expect(result).toHaveLength(1);
     const contract = result[0]!;
     expect(contract.id).toBe(row.id);
@@ -80,8 +94,8 @@ describe('ContractService – list', () => {
   });
 
   it('does not include a monthlyAmount field', () => {
-    insertContract(db, { name: 'Test' });
-    const contract = service.list()[0]!;
+    insertContract(db, ownerId, { name: 'Test' });
+    const contract = service.list(ownerId)[0]!;
     expect((contract as unknown as Record<string, unknown>)['monthlyAmount']).toBeUndefined();
   });
 });
@@ -89,20 +103,25 @@ describe('ContractService – list', () => {
 describe('ContractService – create', () => {
   let db: Database.Database;
   let service: ContractService;
+  let ownerId: string;
 
   beforeEach(() => {
     db = makeDb();
     service = new ContractService(db);
+    ownerId = insertOwner(db);
   });
 
   it('inserts a new contract and returns it with a generated UUID', () => {
-    const result = service.create({
-      name: 'Netflix',
-      category: 'SUBSCRIPTIONS',
-      amount: 15.99,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'Netflix',
+        category: 'SUBSCRIPTIONS',
+        amount: 15.99,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     expect(result.name).toBe('Netflix');
     expect(result.amount).toBe(15.99);
@@ -113,70 +132,88 @@ describe('ContractService – create', () => {
   });
 
   it('persists the contract so it appears in list()', () => {
-    service.create({
-      name: 'Gym',
-      category: 'OTHER',
-      amount: 30,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
-    expect(service.list()).toHaveLength(1);
+    service.create(
+      {
+        name: 'Gym',
+        category: 'OTHER',
+        amount: 30,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
+    expect(service.list(ownerId)).toHaveLength(1);
   });
 
   it('stores endDate when provided', () => {
-    const result = service.create({
-      name: 'Lease',
-      category: 'HOUSING',
-      amount: 1200,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      endDate: '2027-01-01',
-    });
+    const result = service.create(
+      {
+        name: 'Lease',
+        category: 'HOUSING',
+        amount: 1200,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        endDate: '2027-01-01',
+      },
+      ownerId,
+    );
     expect(result.endDate).toBe('2027-01-01');
   });
 
   it('creates a contract with WEEKLY billing interval', () => {
-    const result = service.create({
-      name: 'Weekly Service',
-      category: 'OTHER',
-      amount: 5,
-      billingInterval: 'WEEKLY',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'Weekly Service',
+        category: 'OTHER',
+        amount: 5,
+        billingInterval: 'WEEKLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     expect(result.billingInterval).toBe('WEEKLY');
     expect(result.amount).toBe(5);
   });
 
   it('creates a contract with QUARTERLY billing interval', () => {
-    const result = service.create({
-      name: 'Adobe CC',
-      category: 'SUBSCRIPTIONS',
-      amount: 60,
-      billingInterval: 'QUARTERLY',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'Adobe CC',
+        category: 'SUBSCRIPTIONS',
+        amount: 60,
+        billingInterval: 'QUARTERLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     expect(result.billingInterval).toBe('QUARTERLY');
   });
 
   it('creates a contract with YEARLY billing interval', () => {
-    const result = service.create({
-      name: 'AWS',
-      category: 'SUBSCRIPTIONS',
-      amount: 120,
-      billingInterval: 'YEARLY',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'AWS',
+        category: 'SUBSCRIPTIONS',
+        amount: 120,
+        billingInterval: 'YEARLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     expect(result.billingInterval).toBe('YEARLY');
   });
 
   it('creates a contract with LIFETIME billing interval', () => {
-    const result = service.create({
-      name: 'One-time Software',
-      category: 'OTHER',
-      amount: 299,
-      billingInterval: 'LIFETIME',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'One-time Software',
+        category: 'OTHER',
+        amount: 299,
+        billingInterval: 'LIFETIME',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     expect(result.billingInterval).toBe('LIFETIME');
   });
 });
@@ -184,21 +221,26 @@ describe('ContractService – create', () => {
 describe('ContractService – update', () => {
   let db: Database.Database;
   let service: ContractService;
+  let ownerId: string;
 
   beforeEach(() => {
     db = makeDb();
     service = new ContractService(db);
+    ownerId = insertOwner(db);
   });
 
   it('updates only the supplied fields and returns the full contract', () => {
-    const created = service.create({
-      name: 'Old Name',
-      category: 'OTHER',
-      amount: 10,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
-    const updated = service.update(created.id, { name: 'New Name' })!;
+    const created = service.create(
+      {
+        name: 'Old Name',
+        category: 'OTHER',
+        amount: 10,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
+    const updated = service.update(created.id, { name: 'New Name' }, ownerId)!;
     expect(updated.name).toBe('New Name');
     expect(updated.category).toBe('OTHER');
     expect(updated.amount).toBe(10);
@@ -206,51 +248,61 @@ describe('ContractService – update', () => {
   });
 
   it('updates billing interval', () => {
-    const created = service.create({
-      name: 'Spotify',
-      category: 'SUBSCRIPTIONS',
-      amount: 10,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
-    const updated = service.update(created.id, { billingInterval: 'YEARLY' })!;
+    const created = service.create(
+      {
+        name: 'Spotify',
+        category: 'SUBSCRIPTIONS',
+        amount: 10,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
+    const updated = service.update(created.id, { billingInterval: 'YEARLY' }, ownerId)!;
     expect(updated.billingInterval).toBe('YEARLY');
   });
 
   it('updates updatedAt timestamp', () => {
-    const row = insertContract(db, { updated_at: '2000-01-01T00:00:00.000Z' } as Parameters<
-      typeof insertContract
-    >[1]);
-    const updated = service.update(row.id, { amount: 99 })!;
+    const row = insertContract(db, ownerId, {
+      updated_at: '2000-01-01T00:00:00.000Z',
+    } as Parameters<typeof insertContract>[2]);
+    const updated = service.update(row.id, { amount: 99 }, ownerId)!;
     expect(updated.updatedAt).not.toBe('2000-01-01T00:00:00.000Z');
   });
 
   it('returns null when the contract does not exist', () => {
-    expect(service.update('00000000-0000-0000-0000-000000000000', { name: 'X' })).toBeNull();
+    expect(
+      service.update('00000000-0000-0000-0000-000000000000', { name: 'X' }, ownerId),
+    ).toBeNull();
   });
 });
 
 describe('ContractService – new fields (create)', () => {
   let db: Database.Database;
   let service: ContractService;
+  let ownerId: string;
 
   beforeEach(() => {
     db = makeDb();
     service = new ContractService(db);
+    ownerId = insertOwner(db);
   });
 
   it('creates a contract with all four new fields populated and returns them', () => {
-    const result = service.create({
-      name: 'Spotify',
-      category: 'SUBSCRIPTIONS',
-      amount: 9.99,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      startDate: '2024-01-15',
-      details: 'Annual subscription auto-renews',
-      serviceUrl: 'https://spotify.com',
-      cancellationPeriod: { value: 30, unit: 'DAYS' },
-    });
+    const result = service.create(
+      {
+        name: 'Spotify',
+        category: 'SUBSCRIPTIONS',
+        amount: 9.99,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        startDate: '2024-01-15',
+        details: 'Annual subscription auto-renews',
+        serviceUrl: 'https://spotify.com',
+        cancellationPeriod: { value: 30, unit: 'DAYS' },
+      },
+      ownerId,
+    );
     expect(result.startDate).toBe('2024-01-15');
     expect(result.details).toBe('Annual subscription auto-renews');
     expect(result.serviceUrl).toBe('https://spotify.com');
@@ -258,13 +310,16 @@ describe('ContractService – new fields (create)', () => {
   });
 
   it('creates a contract with all four new fields null and succeeds without error', () => {
-    const result = service.create({
-      name: 'No Extras',
-      category: 'OTHER',
-      amount: 0,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'No Extras',
+        category: 'OTHER',
+        amount: 0,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     expect(result.startDate).toBeNull();
     expect(result.details).toBeNull();
     expect(result.serviceUrl).toBeNull();
@@ -272,16 +327,19 @@ describe('ContractService – new fields (create)', () => {
   });
 
   it('returns null for cancellationPeriod when only one column is set', () => {
-    const result = service.create({
-      name: 'Partial',
-      category: 'OTHER',
-      amount: 1,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'Partial',
+        category: 'OTHER',
+        amount: 1,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     // Directly set only value without unit via raw SQL to simulate edge case
     db.prepare(`UPDATE contracts SET cancellation_period_value = 14 WHERE id = ?`).run(result.id);
-    const listed = service.list().find((c) => c.id === result.id)!;
+    const listed = service.list(ownerId).find((c) => c.id === result.id)!;
     expect(listed.cancellationPeriod).toBeNull();
   });
 });
@@ -289,35 +347,43 @@ describe('ContractService – new fields (create)', () => {
 describe('ContractService – new fields (update)', () => {
   let db: Database.Database;
   let service: ContractService;
+  let ownerId: string;
 
   beforeEach(() => {
     db = makeDb();
     service = new ContractService(db);
+    ownerId = insertOwner(db);
   });
 
   it('updates serviceUrl and returns the updated value', () => {
-    const created = service.create({
-      name: 'Netflix',
-      category: 'SUBSCRIPTIONS',
-      amount: 15.99,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
-    const updated = service.update(created.id, { serviceUrl: 'https://netflix.com' })!;
+    const created = service.create(
+      {
+        name: 'Netflix',
+        category: 'SUBSCRIPTIONS',
+        amount: 15.99,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
+    const updated = service.update(created.id, { serviceUrl: 'https://netflix.com' }, ownerId)!;
     expect(updated.serviceUrl).toBe('https://netflix.com');
   });
 
   it('clears cancellationPeriod when updated to null', () => {
-    const created = service.create({
-      name: 'Gym',
-      category: 'OTHER',
-      amount: 40,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      cancellationPeriod: { value: 14, unit: 'DAYS' },
-    });
+    const created = service.create(
+      {
+        name: 'Gym',
+        category: 'OTHER',
+        amount: 40,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        cancellationPeriod: { value: 14, unit: 'DAYS' },
+      },
+      ownerId,
+    );
     expect(created.cancellationPeriod).toEqual({ value: 14, unit: 'DAYS' });
-    const updated = service.update(created.id, { cancellationPeriod: null })!;
+    const updated = service.update(created.id, { cancellationPeriod: null }, ownerId)!;
     expect(updated.cancellationPeriod).toBeNull();
   });
 });
@@ -325,53 +391,67 @@ describe('ContractService – new fields (update)', () => {
 describe('ContractService – anonymize field', () => {
   let db: Database.Database;
   let service: ContractService;
+  let ownerId: string;
 
   beforeEach(() => {
     db = makeDb();
     service = new ContractService(db);
+    ownerId = insertOwner(db);
   });
 
   it('create defaults anonymize to false when not provided', () => {
-    const result = service.create({
-      name: 'Netflix',
-      category: 'SUBSCRIPTIONS',
-      amount: 15.99,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
+    const result = service.create(
+      {
+        name: 'Netflix',
+        category: 'SUBSCRIPTIONS',
+        amount: 15.99,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
     expect(result.anonymize).toBe(false);
   });
 
   it('create stores anonymize=true when provided', () => {
-    const result = service.create({
-      name: 'Secret Service',
-      category: 'OTHER',
-      amount: 5,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      anonymize: true,
-    });
+    const result = service.create(
+      {
+        name: 'Secret Service',
+        category: 'OTHER',
+        amount: 5,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        anonymize: true,
+      },
+      ownerId,
+    );
     expect(result.anonymize).toBe(true);
   });
 
   it('list maps anonymize column to boolean', () => {
-    service.create({
-      name: 'Public',
-      category: 'OTHER',
-      amount: 1,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      anonymize: false,
-    });
-    service.create({
-      name: 'Private',
-      category: 'OTHER',
-      amount: 2,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      anonymize: true,
-    });
-    const results = service.list();
+    service.create(
+      {
+        name: 'Public',
+        category: 'OTHER',
+        amount: 1,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        anonymize: false,
+      },
+      ownerId,
+    );
+    service.create(
+      {
+        name: 'Private',
+        category: 'OTHER',
+        amount: 2,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        anonymize: true,
+      },
+      ownerId,
+    );
+    const results = service.list(ownerId);
     const pub = results.find((c) => c.name === 'Public')!;
     const priv = results.find((c) => c.name === 'Private')!;
     expect(pub.anonymize).toBe(false);
@@ -379,41 +459,50 @@ describe('ContractService – anonymize field', () => {
   });
 
   it('update patches anonymize from false to true', () => {
-    const created = service.create({
-      name: 'Test',
-      category: 'OTHER',
-      amount: 1,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      anonymize: false,
-    });
-    const updated = service.update(created.id, { anonymize: true })!;
+    const created = service.create(
+      {
+        name: 'Test',
+        category: 'OTHER',
+        amount: 1,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        anonymize: false,
+      },
+      ownerId,
+    );
+    const updated = service.update(created.id, { anonymize: true }, ownerId)!;
     expect(updated.anonymize).toBe(true);
   });
 
   it('update patches anonymize from true to false', () => {
-    const created = service.create({
-      name: 'Test',
-      category: 'OTHER',
-      amount: 1,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      anonymize: true,
-    });
-    const updated = service.update(created.id, { anonymize: false })!;
+    const created = service.create(
+      {
+        name: 'Test',
+        category: 'OTHER',
+        amount: 1,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        anonymize: true,
+      },
+      ownerId,
+    );
+    const updated = service.update(created.id, { anonymize: false }, ownerId)!;
     expect(updated.anonymize).toBe(false);
   });
 
   it('update preserves anonymize when not included in patch', () => {
-    const created = service.create({
-      name: 'Test',
-      category: 'OTHER',
-      amount: 1,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-      anonymize: true,
-    });
-    const updated = service.update(created.id, { name: 'Updated Name' })!;
+    const created = service.create(
+      {
+        name: 'Test',
+        category: 'OTHER',
+        amount: 1,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+        anonymize: true,
+      },
+      ownerId,
+    );
+    const updated = service.update(created.id, { name: 'Updated Name' }, ownerId)!;
     expect(updated.anonymize).toBe(true);
   });
 });
@@ -421,25 +510,30 @@ describe('ContractService – anonymize field', () => {
 describe('ContractService – delete', () => {
   let db: Database.Database;
   let service: ContractService;
+  let ownerId: string;
 
   beforeEach(() => {
     db = makeDb();
     service = new ContractService(db);
+    ownerId = insertOwner(db);
   });
 
   it('removes the contract from the database', () => {
-    const created = service.create({
-      name: 'To Delete',
-      category: 'OTHER',
-      amount: 1,
-      billingInterval: 'MONTHLY',
-      status: 'ACTIVE',
-    });
-    service.delete(created.id);
-    expect(service.list()).toHaveLength(0);
+    const created = service.create(
+      {
+        name: 'To Delete',
+        category: 'OTHER',
+        amount: 1,
+        billingInterval: 'MONTHLY',
+        status: 'ACTIVE',
+      },
+      ownerId,
+    );
+    service.delete(created.id, ownerId);
+    expect(service.list(ownerId)).toHaveLength(0);
   });
 
   it('returns false when the contract does not exist', () => {
-    expect(service.delete('00000000-0000-0000-0000-000000000000')).toBe(false);
+    expect(service.delete('00000000-0000-0000-0000-000000000000', ownerId)).toBe(false);
   });
 });

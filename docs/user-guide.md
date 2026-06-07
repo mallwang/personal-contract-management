@@ -15,7 +15,8 @@ Personal Contract Management is a local web app that keeps all your contracts �
 7. [Exporting contracts](#7-exporting-contracts)
 8. [Anonymization](#8-anonymization)
 9. [Language](#9-language)
-10. [Contract fields reference](#10-contract-fields-reference)
+10. [Accounts & sign-in](#10-accounts--sign-in)
+11. [Contract fields reference](#11-contract-fields-reference)
 
 ---
 
@@ -268,7 +269,40 @@ Currency amounts and dates are formatted according to the selected locale (e.g. 
 
 ---
 
-## 10. Contract fields reference
+## 10. Accounts & sign-in
+
+The app now requires every visitor to sign in — each family member gets their own account, and contracts belong to the account that created them. Nobody can see or change another account's contracts, including on the dashboard, exports, and imports.
+
+### Signing in and out
+
+Open the app and you'll land on the sign-in page if you don't already have an active session. Enter your email and password to continue. Use the **Sign out** button in the top-right corner to end your session on this device.
+
+If you enter the wrong password too many times in a row, the account is temporarily locked — wait a few minutes and try again with the correct password.
+
+### The first account
+
+The very first time the app starts on a fresh installation, it automatically creates an **administrator** account and prints its email address and a one-time password to the server log (visible with `docker compose logs` or in the terminal running the backend). Sign in with those credentials and **change the password immediately** from "My Account" (see below).
+
+If you're upgrading from an older version of the app, this same bootstrap administrator account is created and **all of your existing contracts are automatically assigned to it** — nothing is lost, and you can then create separate accounts for other family members and, if you like, recreate or reassign contracts as needed.
+
+### My Account
+
+Every signed-in user can open **My Account** (link in the top-right corner) to change their own password. You'll need your current password plus a new one (at least 8 characters).
+
+### Manage Accounts (administrators only)
+
+Administrators see an additional **Manage Accounts** link in the top-right corner. From there you can:
+
+- **Create** a new account — provide an email, display name, role (Administrator or Member), and an initial password that the person should change after their first sign-in
+- **Archive** an account to remove someone's access (e.g. when a family member moves out). Archived accounts can no longer sign in, but their data is kept for a retention period in case you change your mind
+- **Reactivate** an archived account within that retention period to restore access with all of its contracts intact
+- **Promote/demote** an account between Administrator and Member roles
+
+The app always keeps at least one active administrator — you cannot archive or demote the last remaining admin, to make sure the household never locks itself out of account management.
+
+---
+
+## 11. Contract fields reference
 
 | Field | Required | Constraints | Notes |
 |-------|----------|-------------|-------|

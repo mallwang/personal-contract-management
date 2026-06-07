@@ -6,6 +6,20 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5174',
   },
+  projects: [
+    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    {
+      name: 'chromium',
+      testIgnore: /auth\.setup\.ts|multi-user-isolation\.spec\.ts/,
+      use: { storageState: 'playwright/.auth/member.json' },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'multi-user',
+      testMatch: /multi-user-isolation\.spec\.ts/,
+      dependencies: ['setup'],
+    },
+  ],
   webServer: [
     {
       command:

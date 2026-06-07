@@ -24,11 +24,11 @@ Existing monorepo layout (Option 2 — web application): `packages/backend/src`,
 
 **Purpose**: Add the one new dependency and the shared types/schemas every story builds on
 
-- [ ] T001 Add `@fastify/cookie` to `packages/backend/package.json` and run `pnpm install` (per plan.md Technical Context — the only new dependency this feature introduces)
-- [ ] T002 [P] Create `Role` (`ADMIN`|`MEMBER`) and `AccountStatus` (`ACTIVE`|`ARCHIVED`) enums in `packages/shared/src/types/user.ts`
-- [ ] T003 [P] Create `User`, `SessionUser`, `SignInBody`, `ChangePasswordBody` Zod schemas in `packages/shared/src/schemas/auth.ts` (mirrors `schemas/contract.ts` snake_case-row ↔ camelCase-API mapping pattern)
-- [ ] T004 [P] Create `CreateAccountBody`, `AccountListResponse` Zod schemas in `packages/shared/src/schemas/user.ts`
-- [ ] T005 Export the new types and schemas from `packages/shared/src/index.ts`
+- [X] T001 Add `@fastify/cookie` to `packages/backend/package.json` and run `pnpm install` (per plan.md Technical Context — the only new dependency this feature introduces)
+- [X] T002 [P] Create `Role` (`ADMIN`|`MEMBER`) and `AccountStatus` (`ACTIVE`|`ARCHIVED`) enums in `packages/shared/src/types/user.ts`
+- [X] T003 [P] Create `User`, `SessionUser`, `SignInBody`, `ChangePasswordBody` Zod schemas in `packages/shared/src/schemas/auth.ts` (mirrors `schemas/contract.ts` snake_case-row ↔ camelCase-API mapping pattern)
+- [X] T004 [P] Create `CreateAccountBody`, `AccountListResponse` Zod schemas in `packages/shared/src/schemas/user.ts`
+- [X] T005 Export the new types and schemas from `packages/shared/src/index.ts`
 
 **Checkpoint**: Shared types/schemas compile and are importable from both `packages/backend` and `packages/frontend`
 
@@ -42,21 +42,21 @@ Existing monorepo layout (Option 2 — web application): `packages/backend/src`,
 
 ### Tests for Foundational (write first, ensure they FAIL)
 
-- [ ] T006 [P] Unit tests for password hashing/verification round-trip (`scrypt` + `timingSafeEqual`, salted, never plaintext) in `packages/backend/tests/unit/auth.service.test.ts`
-- [ ] T007 [P] Unit tests for session lifecycle — create, validate, refresh `last_seen_at`, expiry by `expires_at`/inactivity, destroy — in `packages/backend/tests/unit/auth.service.test.ts`
-- [ ] T008 [P] Extend `packages/backend/tests/unit/migration.test.ts` to assert: `users`/`sessions` tables are created, a bootstrap administrator account is created, and every pre-existing `contracts` row is backfilled with `user_id = <bootstrap-admin-id>` (FR-007/SC-002)
+- [X] T006 [P] Unit tests for password hashing/verification round-trip (`scrypt` + `timingSafeEqual`, salted, never plaintext) in `packages/backend/tests/unit/auth.service.test.ts`
+- [X] T007 [P] Unit tests for session lifecycle — create, validate, refresh `last_seen_at`, expiry by `expires_at`/inactivity, destroy — in `packages/backend/tests/unit/auth.service.test.ts`
+- [X] T008 [P] Extend `packages/backend/tests/unit/migration.test.ts` to assert: `users`/`sessions` tables are created, a bootstrap administrator account is created, and every pre-existing `contracts` row is backfilled with `user_id = <bootstrap-admin-id>` (FR-007/SC-002)
 
 ### Implementation for Foundational
 
-- [ ] T009 Add `users` and `sessions` table definitions to `packages/backend/src/db/schema.sql` per data-model.md (uppercase `CHECK` enums, `TEXT` UUID PKs, ISO-8601 `TEXT` timestamps, `ON DELETE CASCADE` from `users`)
-- [ ] T010 Add `contracts.user_id TEXT REFERENCES users(id)` column to `packages/backend/src/db/schema.sql`
-- [ ] T011 Extend `runMigrations()` in `packages/backend/src/db/client.ts`: detect missing `users`/`sessions` tables, create them, create one bootstrap administrator account, add `contracts.user_id` via `ALTER TABLE`, and backfill every existing row to the bootstrap admin's id (depends on T009, T010; follows the existing step-detection/rebuild migration style, e.g. the `cancellation_period_unit` migration)
-- [ ] T012 Add a startup retention-purge step alongside `runMigrations(db)` in `packages/backend/src/db/client.ts` (or `index.ts`, matching the existing call site) that permanently deletes any `ARCHIVED` user with `archived_at` more than 30 days in the past, cascading to sessions/contracts (FR-012/FR-013, research.md §4)
-- [ ] T013 [P] Update `packages/backend/src/db/seed.ts` to seed a default `ADMIN` account and a `MEMBER` test account with known dev credentials, and to stamp seeded contracts with the appropriate `user_id`
-- [ ] T014 Implement `packages/backend/src/services/auth.service.ts`: `hashPassword`/`verifyPassword` (scrypt + per-user random salt + `timingSafeEqual`), `createSession`/`validateSession`/`refreshSession`/`destroySession`, and failed-attempt/lockout helpers (`recordFailedAttempt`, `isLocked`, threshold + exponential `locked_until`) — makes T006/T007 pass (depends on T009)
-- [ ] T015 Augment Fastify types via `declare module 'fastify'` (alongside the existing `fastify.db` decoration) to add `request.user: AuthenticatedUser | null` in `packages/backend/src/server.ts` or a new `packages/backend/src/types/fastify.d.ts`
-- [ ] T016 Register `@fastify/cookie` and add a global `fastify.addHook('onRequest', ...)` in `buildServer` (`packages/backend/src/server.ts`) that resolves the session cookie → `sessions` row → `users` row, decorates `request.user`, refreshes `last_seen_at`/`expires_at`, deletes invalid/expired/archived-account sessions, and returns `401 { statusCode: 401, error: 'Unauthorized', message: 'Authentication required' }` for any `/api/*` request (other than `POST /api/auth/sign-in`) that does not resolve a valid user (depends on T014, T015; satisfies FR-001/FR-003/FR-004/SC-003)
-- [ ] T017 Wire the startup retention-purge step (T012) into the server bootstrap sequence so it runs once alongside `runMigrations(db)` (depends on T012)
+- [X] T009 Add `users` and `sessions` table definitions to `packages/backend/src/db/schema.sql` per data-model.md (uppercase `CHECK` enums, `TEXT` UUID PKs, ISO-8601 `TEXT` timestamps, `ON DELETE CASCADE` from `users`)
+- [X] T010 Add `contracts.user_id TEXT REFERENCES users(id)` column to `packages/backend/src/db/schema.sql`
+- [X] T011 Extend `runMigrations()` in `packages/backend/src/db/client.ts`: detect missing `users`/`sessions` tables, create them, create one bootstrap administrator account, add `contracts.user_id` via `ALTER TABLE`, and backfill every existing row to the bootstrap admin's id (depends on T009, T010; follows the existing step-detection/rebuild migration style, e.g. the `cancellation_period_unit` migration)
+- [X] T012 Add a startup retention-purge step alongside `runMigrations(db)` in `packages/backend/src/db/client.ts` (or `index.ts`, matching the existing call site) that permanently deletes any `ARCHIVED` user with `archived_at` more than 30 days in the past, cascading to sessions/contracts (FR-012/FR-013, research.md §4)
+- [X] T013 [P] Update `packages/backend/src/db/seed.ts` to seed a default `ADMIN` account and a `MEMBER` test account with known dev credentials, and to stamp seeded contracts with the appropriate `user_id`
+- [X] T014 Implement `packages/backend/src/services/auth.service.ts`: `hashPassword`/`verifyPassword` (scrypt + per-user random salt + `timingSafeEqual`), `createSession`/`validateSession`/`refreshSession`/`destroySession`, and failed-attempt/lockout helpers (`recordFailedAttempt`, `isLocked`, threshold + exponential `locked_until`) — makes T006/T007 pass (depends on T009)
+- [X] T015 Augment Fastify types via `declare module 'fastify'` (alongside the existing `fastify.db` decoration) to add `request.user: AuthenticatedUser | null` in `packages/backend/src/server.ts` or a new `packages/backend/src/types/fastify.d.ts`
+- [X] T016 Register `@fastify/cookie` and add a global `fastify.addHook('onRequest', ...)` in `buildServer` (`packages/backend/src/server.ts`) that resolves the session cookie → `sessions` row → `users` row, decorates `request.user`, refreshes `last_seen_at`/`expires_at`, deletes invalid/expired/archived-account sessions, and returns `401 { statusCode: 401, error: 'Unauthorized', message: 'Authentication required' }` for any `/api/*` request (other than `POST /api/auth/sign-in`) that does not resolve a valid user (depends on T014, T015; satisfies FR-001/FR-003/FR-004/SC-003)
+- [X] T017 Wire the startup retention-purge step (T012) into the server bootstrap sequence so it runs once alongside `runMigrations(db)` (depends on T012)
 
 **Checkpoint**: Schema migrated, bootstrap admin exists with pre-existing contracts assigned to it, sessions/auth services pass their unit tests, and the global auth hook 401s every unauthenticated `/api/*` request — ready for user-story work
 
@@ -70,21 +70,21 @@ Existing monorepo layout (Option 2 — web application): `packages/backend/src`,
 
 ### Tests for User Story 1 (write first, ensure they FAIL)
 
-- [ ] T018 [P] [US1] Integration tests for `POST /api/auth/sign-in` (200 + Set-Cookie + body shape, 400 malformed body, 401 wrong credentials with generic message, 423 locked-out account) in `packages/backend/tests/integration/auth.route.test.ts`
-- [ ] T019 [P] [US1] Integration tests for `POST /api/auth/sign-out` (204, deletes session row, clears cookie) and `GET /api/auth/me` (200 for valid session, 401 for none) in `packages/backend/tests/integration/auth.route.test.ts`
-- [ ] T020 [P] [US1] Integration test asserting every `/api/*` route (e.g., `GET /api/contracts`, `GET /api/dashboard`) returns `401` without a valid session cookie, and `200` with one, in `packages/backend/tests/integration/auth.route.test.ts`
-- [ ] T021 [P] [US1] Integration test for lockout: N consecutive wrong-password attempts against one account return `401` then switch to `423`, and the correct password is also refused while locked, in `packages/backend/tests/integration/auth.route.test.ts`
+- [X] T018 [P] [US1] Integration tests for `POST /api/auth/sign-in` (200 + Set-Cookie + body shape, 400 malformed body, 401 wrong credentials with generic message, 423 locked-out account) in `packages/backend/tests/integration/auth.route.test.ts`
+- [X] T019 [P] [US1] Integration tests for `POST /api/auth/sign-out` (204, deletes session row, clears cookie) and `GET /api/auth/me` (200 for valid session, 401 for none) in `packages/backend/tests/integration/auth.route.test.ts`
+- [X] T020 [P] [US1] Integration test asserting every `/api/*` route (e.g., `GET /api/contracts`, `GET /api/dashboard`) returns `401` without a valid session cookie, and `200` with one, in `packages/backend/tests/integration/auth.route.test.ts`
+- [X] T021 [P] [US1] Integration test for lockout: N consecutive wrong-password attempts against one account return `401` then switch to `423`, and the correct password is also refused while locked, in `packages/backend/tests/integration/auth.route.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T022 [US1] Implement `packages/backend/src/routes/auth.ts`: `POST /api/auth/sign-in` (public — validates body, checks lockout, verifies password via `auth.service`, creates session, sets HTTP-only `Secure` `SameSite=Lax` cookie, returns `{ id, email, displayName, role }`), `POST /api/auth/sign-out`, `GET /api/auth/me`, `POST /api/auth/password` per contracts/api-contracts.md (depends on T014, T016; makes T018–T021 pass)
-- [ ] T023 [US1] Register the auth routes in `packages/backend/src/server.ts` (alongside existing route registrations)
-- [ ] T024 [P] [US1] Create `packages/frontend/src/services/auth.ts`: typed fetch wrappers for `POST /api/auth/sign-in`, `POST /api/auth/sign-out`, `GET /api/auth/me`, `POST /api/auth/password`
-- [ ] T025 [P] [US1] Create `packages/frontend/src/hooks/useAuth.ts`: TanStack Query wrapper around `GET /api/auth/me` (current user or `null`/401) plus sign-in/sign-out mutations that invalidate the query
-- [ ] T026 [US1] Create `packages/frontend/src/pages/SignIn.tsx`: sign-in form posting to `/api/auth/sign-in`, displaying validation/401/423 error messages, redirecting to the dashboard on success (depends on T024, T025)
-- [ ] T027 [US1] Create `packages/frontend/src/components/RequireAuth.tsx`: route guard that renders `SignIn` (or redirects to `/sign-in`) when `useAuth()` reports no current user, and renders children otherwise (depends on T025)
-- [ ] T028 [US1] Wire `/sign-in` route and wrap existing authenticated routes with `RequireAuth` in `packages/frontend/src/main.tsx`; show the signed-in user's display name and a sign-out control in the app header (depends on T026, T027)
-- [ ] T029 [P] [US1] Playwright e2e scaffold `packages/frontend/tests/e2e/multi-user-isolation.spec.ts`: sign in as a seeded account, assert the dashboard loads under that identity and sign-out returns to `/sign-in` (full cross-account isolation assertions land in US2 — see T040)
+- [X] T022 [US1] Implement `packages/backend/src/routes/auth.ts`: `POST /api/auth/sign-in` (public — validates body, checks lockout, verifies password via `auth.service`, creates session, sets HTTP-only `Secure` `SameSite=Lax` cookie, returns `{ id, email, displayName, role }`), `POST /api/auth/sign-out`, `GET /api/auth/me`, `POST /api/auth/password` per contracts/api-contracts.md (depends on T014, T016; makes T018–T021 pass)
+- [X] T023 [US1] Register the auth routes in `packages/backend/src/server.ts` (alongside existing route registrations)
+- [X] T024 [P] [US1] Create `packages/frontend/src/services/auth.ts`: typed fetch wrappers for `POST /api/auth/sign-in`, `POST /api/auth/sign-out`, `GET /api/auth/me`, `POST /api/auth/password`
+- [X] T025 [P] [US1] Create `packages/frontend/src/hooks/useAuth.ts`: TanStack Query wrapper around `GET /api/auth/me` (current user or `null`/401) plus sign-in/sign-out mutations that invalidate the query
+- [X] T026 [US1] Create `packages/frontend/src/pages/SignIn.tsx`: sign-in form posting to `/api/auth/sign-in`, displaying validation/401/423 error messages, redirecting to the dashboard on success (depends on T024, T025)
+- [X] T027 [US1] Create `packages/frontend/src/components/RequireAuth.tsx`: route guard that renders `SignIn` (or redirects to `/sign-in`) when `useAuth()` reports no current user, and renders children otherwise (depends on T025)
+- [X] T028 [US1] Wire `/sign-in` route and wrap existing authenticated routes with `RequireAuth` in `packages/frontend/src/main.tsx`; show the signed-in user's display name and a sign-out control in the app header (depends on T026, T027)
+- [X] T029 [P] [US1] Playwright e2e scaffold `packages/frontend/tests/e2e/multi-user-isolation.spec.ts`: sign in as a seeded account, assert the dashboard loads under that identity and sign-out returns to `/sign-in` (full cross-account isolation assertions land in US2 — see T040)
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — sign-in, sign-out, session expiry, lockout, and the redirect-to-sign-in behavior all work end-to-end
 
@@ -98,20 +98,20 @@ Existing monorepo layout (Option 2 — web application): `packages/backend/src`,
 
 ### Tests for User Story 2 (write first, ensure they FAIL)
 
-- [ ] T030 [P] [US2] Extend `packages/backend/tests/integration/contracts.route.test.ts` with cross-account isolation cases: user A's `GET /api/contracts` never includes user B's contracts, `POST /api/contracts` stamps `user_id = request.user.id`, and `GET/PUT/DELETE /api/contracts/:id` return `404` (not `403`) for another user's contract id
-- [ ] T031 [P] [US2] Add cross-account isolation cases to the dashboard route tests (`GET /api/dashboard` aggregates/totals/renewal panels reflect only the signed-in user's contracts) — extend the existing dashboard integration test file alongside `contracts.route.test.ts`
-- [ ] T032 [P] [US2] Add cross-account isolation cases to the export/import route tests: exports never contain another user's contracts, and imports always attribute new rows to the importing user — extend the existing export/import integration test file
-- [ ] T033 [US2] Complete `packages/frontend/tests/e2e/multi-user-isolation.spec.ts` (started in T029): sign in as two seeded accounts in separate browser contexts, create a contract as one, and assert it is invisible in the other's list, dashboard, and export — the direct end-to-end test of FR-005/FR-006/SC-004
+- [X] T030 [P] [US2] Extend `packages/backend/tests/integration/contracts.route.test.ts` with cross-account isolation cases: user A's `GET /api/contracts` never includes user B's contracts, `POST /api/contracts` stamps `user_id = request.user.id`, and `GET/PUT/DELETE /api/contracts/:id` return `404` (not `403`) for another user's contract id
+- [X] T031 [P] [US2] Add cross-account isolation cases to the dashboard route tests (`GET /api/dashboard` aggregates/totals/renewal panels reflect only the signed-in user's contracts) — extend the existing dashboard integration test file alongside `contracts.route.test.ts`
+- [X] T032 [P] [US2] Add cross-account isolation cases to the export/import route tests: exports never contain another user's contracts, and imports always attribute new rows to the importing user — extend the existing export/import integration test file (no separate backend export/import route exists — export/import goes through `GET`/`POST /api/contracts`, already covered by T030's "GET never returns another user's contracts" / "POST stamps user_id" cases)
+- [X] T033 [US2] Complete `packages/frontend/tests/e2e/multi-user-isolation.spec.ts` (started in T029): sign in as two seeded accounts in separate browser contexts, create a contract as one, and assert it is invisible in the other's list, dashboard, and export — the direct end-to-end test of FR-005/FR-006/SC-004
 
 ### Implementation for User Story 2
 
-- [ ] T034 [US2] Modify `packages/backend/src/services/contract.ts`: every method (list, get, create, update, delete, export, import) takes/uses an `ownerId: string` and adds `WHERE user_id = ?` to every query; `create` stamps `user_id = ownerId`; `get`/`update`/`delete` return "not found" for rows owned by a different user (so routes can map to `404`) — makes T030/T032 pass (depends on T010, T011)
-- [ ] T035 [US2] Modify `packages/backend/src/services/dashboard.ts`: every aggregate query is scoped by `ownerId` — makes T031 pass (depends on T034)
-- [ ] T036 [US2] Modify `packages/backend/src/routes/contracts.ts` to pass `request.user.id` into every `ContractService` call and map "not found for this owner" to `404 Not Found`
-- [ ] T037 [US2] Modify `packages/backend/src/routes/dashboard.ts` to pass `request.user.id` into every `DashboardService` call
-- [ ] T038 [US2] Verify `rowToContract` and the shared `ContractSchema` in `packages/shared/src/schemas/contract.ts` never serialize `user_id` into API responses (FR-014 — internal-only ownership; adjust the mapping function if it currently passes the column through)
-- [ ] T039 [US2] Confirm the existing per-contract anonymization setting and global anonymize toggle continue to apply correctly within each user's now-isolated view (FR-017 / [[feedback_anonymization_invariant]]) — add a regression assertion to the anonymization test suite if the scoping change touches any shared query path
-- [ ] T040 [US2] Run and pass the completed `multi-user-isolation.spec.ts` (T033) against the implemented isolation (depends on T034–T037)
+- [X] T034 [US2] Modify `packages/backend/src/services/contract.ts`: every method (list, get, create, update, delete, export, import) takes/uses an `ownerId: string` and adds `WHERE user_id = ?` to every query; `create` stamps `user_id = ownerId`; `get`/`update`/`delete` return "not found" for rows owned by a different user (so routes can map to `404`) — makes T030/T032 pass (depends on T010, T011)
+- [X] T035 [US2] Modify `packages/backend/src/services/dashboard.ts`: every aggregate query is scoped by `ownerId` — makes T031 pass (depends on T034)
+- [X] T036 [US2] Modify `packages/backend/src/routes/contracts.ts` to pass `request.user.id` into every `ContractService` call and map "not found for this owner" to `404 Not Found`
+- [X] T037 [US2] Modify `packages/backend/src/routes/dashboard.ts` to pass `request.user.id` into every `DashboardService` call
+- [X] T038 [US2] Verify `rowToContract` and the shared `ContractSchema` in `packages/shared/src/schemas/contract.ts` never serialize `user_id` into API responses (FR-014 — internal-only ownership; adjust the mapping function if it currently passes the column through)
+- [X] T039 [US2] Confirm the existing per-contract anonymization setting and global anonymize toggle continue to apply correctly within each user's now-isolated view (FR-017 / [[feedback_anonymization_invariant]]) — add a regression assertion to the anonymization test suite if the scoping change touches any shared query path
+- [X] T040 [US2] Run and pass the completed `multi-user-isolation.spec.ts` (T033) against the implemented isolation (depends on T034–T037)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — signed-in users see, create, edit, delete, search, and export only their own contracts, with zero cross-account leakage on any surface
 
@@ -125,23 +125,24 @@ Existing monorepo layout (Option 2 — web application): `packages/backend/src`,
 
 ### Tests for User Story 3 (write first, ensure they FAIL)
 
-- [ ] T041 [P] [US3] Integration tests for `GET /api/users` and `POST /api/users` (admin-only list/create, `201`/`400`/`409` duplicate-email, non-admin receives `403`) in `packages/backend/tests/integration/users.route.test.ts`
-- [ ] T042 [P] [US3] Integration tests for `POST /api/users/:id/archive` (`204`, deletes the account's sessions immediately, sets `status=ARCHIVED`/`archived_at`, `404` unknown id, `409` last-admin guard) in `packages/backend/tests/integration/users.route.test.ts`
-- [ ] T043 [P] [US3] Integration tests for `POST /api/users/:id/reactivate` (`204` restores `ACTIVE` + original contracts intact, `404` unknown/purged id, `409` not-archived) and `POST /api/users/:id/role` (`204` change, `409` last-admin demotion guard) in `packages/backend/tests/integration/users.route.test.ts`
-- [ ] T044 [P] [US3] Integration test confirming an archived account's active session is invalidated immediately (subsequent authenticated requests with its old cookie return `401`) and sign-in attempts against it return `401`, in `packages/backend/tests/integration/auth.route.test.ts`
-- [ ] T045 [P] [US3] Unit tests for `user.service.ts`: account create/list/archive/reactivate, the last-active-admin guard (rejects archiving and demoting the last admin), and the 30-day retention purge logic, in `packages/backend/tests/unit/user.service.test.ts`
+- [X] T041 [P] [US3] Integration tests for `GET /api/users` and `POST /api/users` (admin-only list/create, `201`/`400`/`409` duplicate-email, non-admin receives `403`) in `packages/backend/tests/integration/users.route.test.ts`
+- [X] T042 [P] [US3] Integration tests for `POST /api/users/:id/archive` (`204`, deletes the account's sessions immediately, sets `status=ARCHIVED`/`archived_at`, `404` unknown id, `409` last-admin guard) in `packages/backend/tests/integration/users.route.test.ts`
+- [X] T043 [P] [US3] Integration tests for `POST /api/users/:id/reactivate` (`204` restores `ACTIVE` + original contracts intact, `404` unknown/purged id, `409` not-archived) and `POST /api/users/:id/role` (`204` change, `409` last-admin demotion guard) in `packages/backend/tests/integration/users.route.test.ts`
+- [X] T044 [P] [US3] Integration test confirming an archived account's active session is invalidated immediately (subsequent authenticated requests with its old cookie return `401`) and sign-in attempts against it return `401`, in `packages/backend/tests/integration/auth.route.test.ts`
+- [X] T045 [P] [US3] Unit tests for `user.service.ts`: account create/list/archive/reactivate, the last-active-admin guard (rejects archiving and demoting the last admin), and the 30-day retention purge logic, in `packages/backend/tests/unit/user.service.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T046 [US3] Implement `packages/backend/src/services/user.service.ts`: account CRUD (create with hashed initial password via `auth.service`, list including archived, archive incl. session deletion, reactivate, role change, retention-purge query), with the last-active-admin guard enforced before every archive/demote operation — makes T045 pass (depends on T014)
-- [ ] T047 [US3] Implement `packages/backend/src/routes/users.ts`: `GET /api/users`, `POST /api/users`, `POST /api/users/:id/archive`, `POST /api/users/:id/reactivate`, `POST /api/users/:id/role`, each requiring `request.user.role === 'ADMIN'` (else `403 { error: 'Forbidden', message: 'Administrator access required' }`) per contracts/api-contracts.md — makes T041–T043 pass (depends on T046)
-- [ ] T048 [US3] Register the admin-only user routes in `packages/backend/src/server.ts`
-- [ ] T049 [US3] Verify the global auth hook (T016) treats archived users' sessions as invalid immediately upon archive (no separate code path needed if `sessions` rows are deleted on archive — confirm and add a regression note/test if a gap is found) — makes T044 pass
-- [ ] T050 [P] [US3] Create `packages/frontend/src/components/RequireAdmin.tsx`: route guard rendering a forbidden state / redirect for non-admin users (depends on T025)
-- [ ] T051 [P] [US3] Create `packages/frontend/src/pages/admin/AccountsAdmin.tsx`: admin UI listing accounts (incl. archived/status), creating new accounts (email, display name, role, initial password), archiving, and reactivating, calling the `/api/users/*` wrappers (depends on T052)
-- [ ] T052 [P] [US3] Extend `packages/frontend/src/services/auth.ts` (or add `packages/frontend/src/services/users.ts`) with typed fetch wrappers for `GET/POST /api/users`, `POST /api/users/:id/archive`, `POST /api/users/:id/reactivate`, `POST /api/users/:id/role`
-- [ ] T053 [US3] Create `packages/frontend/src/pages/AccountSettings.tsx`: change-own-password form posting to `POST /api/auth/password` (FR-018) — every signed-in user, not admin-only
-- [ ] T054 [US3] Wire `/account` and `/admin/accounts` routes in `packages/frontend/src/main.tsx`, wrapping the latter in `RequireAdmin` (depends on T050, T051, T053)
+- [X] T046 [US3] Implement `packages/backend/src/services/user.service.ts`: account CRUD (create with hashed initial password via `auth.service`, list including archived, archive incl. session deletion, reactivate, role change, retention-purge query), with the last-active-admin guard enforced before every archive/demote operation — makes T045 pass (depends on T014)
+- [X] T047 [US3] Implement `packages/backend/src/routes/users.ts`: `GET /api/users`, `POST /api/users`, `POST /api/users/:id/archive`, `POST /api/users/:id/reactivate`, `POST /api/users/:id/role`, each requiring `request.user.role === 'ADMIN'` (else `403 { error: 'Forbidden', message: 'Administrator access required' }`) per contracts/api-contracts.md — makes T041–T043 pass (depends on T046)
+- [X] T048 [US3] Register the admin-only user routes in `packages/backend/src/server.ts`
+- [X] T049 [US3] Verify the global auth hook (T016) treats archived users' sessions as invalid immediately upon archive (no separate code path needed if `sessions` rows are deleted on archive — confirm and add a regression note/test if a gap is found) — makes T044 pass
+  - Verified: `resolveSession` (auth.service.ts) destroys any session whose user `status !== 'ACTIVE'`, and `UserService.archive()` additionally deletes the account's session rows directly — both paths are exercised by the passing T044 tests in auth.route.test.ts.
+- [X] T050 [P] [US3] Create `packages/frontend/src/components/RequireAdmin.tsx`: route guard rendering a forbidden state / redirect for non-admin users (depends on T025)
+- [X] T051 [P] [US3] Create `packages/frontend/src/pages/admin/AccountsAdmin.tsx`: admin UI listing accounts (incl. archived/status), creating new accounts (email, display name, role, initial password), archiving, and reactivating, calling the `/api/users/*` wrappers (depends on T052)
+- [X] T052 [P] [US3] Extend `packages/frontend/src/services/auth.ts` (or add `packages/frontend/src/services/users.ts`) with typed fetch wrappers for `GET/POST /api/users`, `POST /api/users/:id/archive`, `POST /api/users/:id/reactivate`, `POST /api/users/:id/role`
+- [X] T053 [US3] Create `packages/frontend/src/pages/AccountSettings.tsx`: change-own-password form posting to `POST /api/auth/password` (FR-018) — every signed-in user, not admin-only
+- [X] T054 [US3] Wire `/account` and `/admin/accounts` routes in `packages/frontend/src/main.tsx`, wrapping the latter in `RequireAdmin` (depends on T050, T051, T053)
 
 **Checkpoint**: All three user stories are independently functional — sign-in/sessions, per-user contract isolation, and full admin account lifecycle (create/list/archive/reactivate/role, with last-admin protection and immediate session invalidation) all work end-to-end
 
@@ -151,9 +152,18 @@ Existing monorepo layout (Option 2 — web application): `packages/backend/src`,
 
 **Purpose**: Final validation and documentation touches that span all three stories
 
-- [ ] T055 [P] Run `pnpm --filter backend test` and `pnpm --filter frontend test` (incl. the Playwright e2e) and confirm the full suite is green with no `any` types and `strict: true` intact (Constitution Principles I & II)
-- [ ] T056 Walk through every scenario in `specs/013-multi-user-support/quickstart.md` against a running dev instance (fresh DB for Scenario 1/2/3/4, a pre-013 DB copy for Scenario 5) and confirm each expected result
-- [ ] T057 [P] Update `specs/012-docker-packaging/quickstart.md` or the bilingual user documentation (per the existing `acfba92 docs: add favicon and bilingual user documentation` work) to mention that the application now requires sign-in and how the bootstrap administrator account is provisioned on first run
+- [X] T055 [P] Run `pnpm --filter backend test` and `pnpm --filter frontend test` (incl. the Playwright e2e) and confirm the full suite is green with no `any` types and `strict: true` intact (Constitution Principles I & II)
+  - Backend: 196/196 unit+integration tests pass. Frontend unit/component: 216/216 pass. `tsc --noEmit` clean (no `any`, `strict: true`) across all three packages.
+  - Playwright e2e: 43/50 chromium scenarios pass (incl. all new auth/multi-user-isolation/admin-account specs). The 7 failures (contracts.spec, dashboard.spec, exportImport.spec, multilanguage.spec — all "strict mode violation: locator resolved to multiple elements") are pre-existing brittle selectors verified to fail identically on `main` (confirmed via an isolated worktree run against `eb53ee4`), unrelated to this feature.
+- [X] T056 Walk through every scenario in `specs/013-multi-user-support/quickstart.md` against a running dev instance (fresh DB for Scenario 1/2/3/4, a pre-013 DB copy for Scenario 5) and confirm each expected result
+  - Scenario 1 (sign-in required): unauthenticated `GET /api/contracts` → 401; sign-in → 200 + Set-Cookie + `{id,email,displayName,role}`. ✓
+  - Scenario 2 (data isolation): admin-created contract invisible to member account in both `/api/contracts` (0 matches) and `/api/dashboard` (0 matches), and vice versa by differing counts. ✓
+  - Scenario 3 (account management): create→201, list grep→1, archive→204, sign-in while archived→401, reactivate→204, sign-in after reactivation→200, non-admin on `/api/users`→403 — exact expected sequence. ✓
+  - Scenario 4 (lockout): 5× wrong password→401, 6th→423, correct password while locked→423. ✓
+  - Scenario 5 (upgrade path): hand-built a pre-013 schema DB (no `users`/`sessions` tables, 3 contracts with no `user_id`), ran `db:migrate` — bootstrap admin created and all 3 pre-existing contracts backfilled to it (verified via direct DB query and via the live API: signed-in admin sees exactly those 3, 100% retained, zero loss). ✓
+- [X] T057 [P] Update `specs/012-docker-packaging/quickstart.md` or the bilingual user documentation (per the existing `acfba92 docs: add favicon and bilingual user documentation` work) to mention that the application now requires sign-in and how the bootstrap administrator account is provisioned on first run
+  - Added a new "Accounts & sign-in" / "Konten & Anmeldung" section (with matching TOC entries, fields-reference renumbered 10→11) to `docs/user-guide.md` and `docs/user-guide.de.md`, covering sign-in/out, lockout, bootstrap admin creation + log output, upgrade/backfill behaviour, "My Account" password change, and the admin-only "Manage Accounts" UI with last-admin protection.
+  - Updated `README.md`/`README.de.md`: added a "Multi-user accounts" feature bullet, a new "Signing in" / "Anmeldung" subsection under Getting started documenting the bootstrap admin (credentials printed to the backend log) and the two seeded dev accounts (`admin@example.test`/`dev-admin-pass`, `member@example.test`/`dev-member-pass`), and a note in Deployment that `docker compose logs` shows the bootstrap admin's one-time credentials on first run.
 
 ---
 

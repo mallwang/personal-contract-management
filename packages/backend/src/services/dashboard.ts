@@ -49,37 +49,37 @@ const MONTHLY_FACTOR_SQL = `
 export class DashboardService {
   constructor(private readonly db: Database.Database) {}
 
-  getDashboardData(): DashboardResponse {
-    const totalMonthlySpending = this.getTotalMonthlySpending();
-    const contractsByCategory = this.getContractsByCategory();
-    const upcomingRenewals = this.getUpcomingRenewals();
-    const expiredContracts = this.getExpiredContracts();
+  getDashboardData(ownerId: string): DashboardResponse {
+    const totalMonthlySpending = this.getTotalMonthlySpending(ownerId);
+    const contractsByCategory = this.getContractsByCategory(ownerId);
+    const upcomingRenewals = this.getUpcomingRenewals(ownerId);
+    const expiredContracts = this.getExpiredContracts(ownerId);
     return { totalMonthlySpending, contractsByCategory, upcomingRenewals, expiredContracts };
   }
 
-  private getTotalMonthlySpending(): number {
+  private getTotalMonthlySpending(ownerId: string): number {
     const row = this.db
-      .prepare<[], { total: number }>(
+      .prepare<[string], { total: number }>(
         `SELECT COALESCE(SUM(${MONTHLY_FACTOR_SQL}), 0) AS total
          FROM contracts
-         WHERE status = 'ACTIVE'`,
+         WHERE status = 'ACTIVE' AND user_id = ?`,
       )
-      .get();
+      .get(ownerId);
     return row?.total ?? 0;
   }
 
-  private getContractsByCategory(): CategorySummary[] {
+  private getContractsByCategory(ownerId: string): CategorySummary[] {
     const rows = this.db
-      .prepare<[], { category: string; count: number; monthly_total: number }>(
+      .prepare<[string], { category: string; count: number; monthly_total: number }>(
         `SELECT category,
                 COUNT(*) AS count,
                 SUM(${MONTHLY_FACTOR_SQL}) AS monthly_total
          FROM contracts
-         WHERE status = 'ACTIVE'
+         WHERE status = 'ACTIVE' AND user_id = ?
          GROUP BY category
          ORDER BY monthly_total DESC`,
       )
-      .all();
+      .all(ownerId);
 
     return rows.map((row) => ({
       category: row.category as Category,
@@ -89,10 +89,10 @@ export class DashboardService {
     }));
   }
 
-  private getUpcomingRenewals(): UpcomingRenewal[] {
+  private getUpcomingRenewals(ownerId: string): UpcomingRenewal[] {
     const rows = this.db
       .prepare<
-        [],
+        [string],
         {
           id: string;
           name: string;
@@ -108,9 +108,10 @@ export class DashboardService {
          FROM contracts
          WHERE end_date IS NOT NULL
            AND billing_interval != 'LIFETIME'
-           AND end_date >= DATE('now')`,
+           AND end_date >= DATE('now')
+           AND user_id = ?`,
       )
-      .all();
+      .all(ownerId);
 
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -161,10 +162,10 @@ export class DashboardService {
     return results;
   }
 
-  private getExpiredContracts(): ExpiredContract[] {
+  private getExpiredContracts(ownerId: string): ExpiredContract[] {
     const rows = this.db
       .prepare<
-        [],
+        [string],
         { id: string; name: string; category: string; end_date: string; anonymize: number }
       >(
         `SELECT id, name, category, end_date, anonymize
@@ -172,9 +173,10 @@ export class DashboardService {
          WHERE end_date IS NOT NULL
            AND billing_interval != 'LIFETIME'
            AND end_date < DATE('now')
+           AND user_id = ?
          ORDER BY end_date DESC`,
       )
-      .all();
+      .all(ownerId);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

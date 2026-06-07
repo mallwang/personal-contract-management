@@ -13,6 +13,7 @@ Eine persönliche Web-App zum Verwalten von Verträgen — Abonnements, Versiche
 - **Import** — JSON oder Excel hochladen mit intelligenter Spaltenzuordnung
 - **Anonymisierung** — echte Vertragsnamen global oder pro Vertrag mit deterministischen Fantasienamen verbergen
 - **Lokalisierung** — Englisch und Deutsch mit gebietsschemaabhängiger Währungs- und Datumsformatierung
+- **Mehrbenutzer-Konten** — jedes Familienmitglied meldet sich mit einem eigenen Konto an; Verträge, Dashboards, Exporte und Importe sind pro Konto getrennt, und Administratoren können andere Konten erstellen, archivieren, reaktivieren und deren Rollen verwalten
 
 Eine vollständige Anleitung zur Benutzeroberfläche findest du unter [docs/user-guide.de.md](docs/user-guide.de.md).
 
@@ -48,6 +49,10 @@ pnpm dev
 Öffne [http://localhost:5173](http://localhost:5173).
 
 Die Backend-API läuft unter [http://localhost:3000](http://localhost:3000).
+
+### Anmeldung
+
+Die App erfordert, dass sich jeder Besucher anmeldet. Bei einer frischen Datenbank erstellt `db:migrate` automatisch ein **Administrator**-Konto und gibt dessen E-Mail-Adresse sowie ein Einmal-Passwort in der Konsolenausgabe des Backends aus — melde dich mit diesen Daten an und ändere das Passwort sofort über "Mein Konto". `db:seed` legt zusätzlich zwei einsatzbereite Entwicklungskonten an: `admin@example.test` / `dev-admin-pass` (Administrator) und `member@example.test` / `dev-member-pass` (Mitglied). Details findest du unter [Konten & Anmeldung](docs/user-guide.de.md#10-konten--anmeldung) im Benutzerhandbuch.
 
 ## Tests ausführen
 
@@ -89,6 +94,8 @@ docker compose up -d
 ```
 
 Die App ist anschließend unter **http://localhost:3001** erreichbar. Die SQLite-Datenbank wird unter `./data/contracts.db` auf dem Host gespeichert und übersteht somit Container-Neustarts und -Neuerstellungen.
+
+Beim ersten Start mit einer frischen Datenbank werden die E-Mail-Adresse und ein Einmal-Passwort des Administrator-Kontos in den Container-Logs ausgegeben — führe `docker compose logs` aus, melde dich an und ändere das Passwort sofort.
 
 **Host-Port ändern**: die Zeile `ports:` in `docker-compose.yml` bearbeiten — nur die linke Seite (Host-Port) muss geändert werden, z. B. macht `"9090:3000"` die App unter Port 9090 erreichbar.
 

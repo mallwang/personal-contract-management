@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import Database from 'better-sqlite3';
-import { runMigrations } from '../../src/db/client.js';
+import {
+  runMigrations,
+  purgeExpiredArchivedAccounts,
+  createDb,
+  type UserRow,
+} from '../../src/db/client.js';
+import { verifyPassword } from '../../src/services/password.js';
 
 function columnNames(db: Database.Database, table: string): string[] {
   return db
@@ -183,6 +189,115 @@ describe('runMigrations – new contract fields', () => {
     expect(row.service_url).toBeNull();
     expect(row.cancellation_period_value).toBeNull();
     expect(row.cancellation_period_unit).toBeNull();
+    db.close();
+  });
+});
+
+describe('runMigrations – multi-user bootstrap (FR-007/SC-002)', () => {
+  it('creates users/sessions tables and a contracts.user_id column on a fresh database', () => {
+    const db = new Database(':memory:');
+    db.pragma('journal_mode = WAL');
+    db.pragma('foreign_keys = ON');
+    runMigrations(db);
+
+    const tables = db
+      .prepare<[], { name: string }>(`SELECT name FROM sqlite_master WHERE type = 'table'`)
+      .all()
+      .map((r) => r.name);
+    expect(tables).toContain('users');
+    expect(tables).toContain('sessions');
+    expect(columnNames(db, 'contracts')).toContain('user_id');
+    db.close();
+  });
+
+  it('bootstraps exactly one ADMIN account on a fresh database, with a usable password', () => {
+    const db = new Database(':memory:');
+    db.pragma('journal_mode = WAL');
+    db.pragma('foreign_keys = ON');
+    runMigrations(db);
+
+    const users = db.prepare<[], UserRow>(`SELECT * FROM users`).all();
+    expect(users).toHaveLength(1);
+    expect(users[0]?.role).toBe('ADMIN');
+    expect(users[0]?.status).toBe('ACTIVE');
+    // The generated password is logged, never stored — only its hash/salt persist.
+    expect(users[0]?.password_hash).not.toHaveLength(0);
+    expect(
+      verifyPassword('not-the-real-password', users[0]!.password_hash, users[0]!.password_salt),
+    ).toBe(false);
+    db.close();
+  });
+
+  it('backfills every pre-existing contract to the bootstrap administrator account', () => {
+    const db = makeOldSchemaDb();
+    const now = new Date().toISOString();
+    const ids = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
+    for (const id of ids) {
+      db.prepare(
+        `INSERT INTO contracts (id, name, category, monthly_amount, status, end_date, created_at, updated_at)
+         VALUES (?, 'Pre-existing contract', 'OTHER', 10, 'ACTIVE', null, ?, ?)`,
+      ).run(id, now, now);
+    }
+
+    runMigrations(db);
+
+    const admin = db.prepare<[], UserRow>(`SELECT * FROM users WHERE role = 'ADMIN'`).get()!;
+    const owners = db
+      .prepare<[], { user_id: string | null }>(`SELECT user_id FROM contracts`)
+      .all()
+      .map((r) => r.user_id);
+    expect(owners).toHaveLength(3);
+    expect(owners.every((ownerId) => ownerId === admin.id)).toBe(true);
+    db.close();
+  });
+
+  it('does not create a second bootstrap admin when one already exists (idempotent)', () => {
+    const db = new Database(':memory:');
+    db.pragma('journal_mode = WAL');
+    db.pragma('foreign_keys = ON');
+    runMigrations(db);
+    runMigrations(db);
+
+    const count = db.prepare<[], { n: number }>(`SELECT COUNT(*) AS n FROM users`).get()!.n;
+    expect(count).toBe(1);
+    db.close();
+  });
+});
+
+describe('purgeExpiredArchivedAccounts (FR-012/FR-013)', () => {
+  function insertArchivedUser(db: Database.Database, archivedAt: string) {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    db.prepare(
+      `INSERT INTO users (id, email, display_name, password_hash, password_salt, role, status, archived_at, created_at, updated_at)
+       VALUES (?, ?, 'Archived User', 'h', 's', 'MEMBER', 'ARCHIVED', ?, ?, ?)`,
+    ).run(id, `${id}@example.test`, archivedAt, now, now);
+    return id;
+  }
+
+  it('permanently deletes accounts archived more than 30 days ago', () => {
+    const db = createDb(':memory:');
+    runMigrations(db);
+    const longAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
+    const id = insertArchivedUser(db, longAgo);
+
+    const deleted = purgeExpiredArchivedAccounts(db);
+
+    expect(deleted).toBe(1);
+    expect(db.prepare(`SELECT 1 FROM users WHERE id = ?`).get(id)).toBeUndefined();
+    db.close();
+  });
+
+  it('retains accounts archived within the last 30 days', () => {
+    const db = createDb(':memory:');
+    runMigrations(db);
+    const recently = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+    const id = insertArchivedUser(db, recently);
+
+    const deleted = purgeExpiredArchivedAccounts(db);
+
+    expect(deleted).toBe(0);
+    expect(db.prepare(`SELECT 1 FROM users WHERE id = ?`).get(id)).toBeDefined();
     db.close();
   });
 });

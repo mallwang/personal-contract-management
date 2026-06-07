@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, InjectOptions } from 'fastify';
 import { createDb, runMigrations } from '../../src/db/client.js';
-import { buildServer } from '../../src/server.js';
+import { buildServer, SESSION_COOKIE_NAME } from '../../src/server.js';
+import { createAuthenticatedSession } from '../helpers/auth.js';
 import Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 
 function insertContract(
   db: Database.Database,
+  ownerId: string,
   overrides: Partial<{
     id: string;
     name: string;
@@ -22,6 +24,7 @@ function insertContract(
 ) {
   const row = {
     id: randomUUID(),
+    user_id: ownerId,
     name: 'Test',
     category: 'SUBSCRIPTIONS',
     amount: 10.0,
@@ -36,8 +39,8 @@ function insertContract(
     ...overrides,
   };
   db.prepare(
-    `INSERT INTO contracts (id, name, category, amount, billing_interval, status, end_date, anonymize, cancellation_period_value, cancellation_period_unit, created_at, updated_at)
-     VALUES (@id, @name, @category, @amount, @billing_interval, @status, @end_date, @anonymize, @cancellation_period_value, @cancellation_period_unit, @created_at, @updated_at)`,
+    `INSERT INTO contracts (id, user_id, name, category, amount, billing_interval, status, end_date, anonymize, cancellation_period_value, cancellation_period_unit, created_at, updated_at)
+     VALUES (@id, @user_id, @name, @category, @amount, @billing_interval, @status, @end_date, @anonymize, @cancellation_period_value, @cancellation_period_unit, @created_at, @updated_at)`,
   ).run(row);
 }
 
@@ -50,12 +53,19 @@ function daysFromNow(days: number): string {
 describe('GET /api/dashboard', () => {
   let db: Database.Database;
   let app: FastifyInstance;
+  let sessionCookie: string;
+  let ownerId: string;
+
+  function inject(opts: InjectOptions) {
+    return app.inject({ ...opts, cookies: { [SESSION_COOKIE_NAME]: sessionCookie } });
+  }
 
   beforeEach(async () => {
     db = createDb(':memory:');
     runMigrations(db);
     app = await buildServer(db);
     await app.ready();
+    ({ userId: ownerId, sessionId: sessionCookie } = createAuthenticatedSession(db));
   });
 
   afterEach(async () => {
@@ -64,7 +74,7 @@ describe('GET /api/dashboard', () => {
   });
 
   it('returns a valid DashboardResponse shape with empty data', async () => {
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     expect(res.statusCode).toBe(200);
     const body: unknown = res.json();
     expect(body).toMatchObject({
@@ -76,57 +86,57 @@ describe('GET /api/dashboard', () => {
   });
 
   it('returns correct totalMonthlySpending for MONTHLY contracts (active only)', async () => {
-    insertContract(db, { amount: 100, billing_interval: 'MONTHLY', status: 'ACTIVE' });
-    insertContract(db, { amount: 50, billing_interval: 'MONTHLY', status: 'ACTIVE' });
-    insertContract(db, { amount: 999, billing_interval: 'MONTHLY', status: 'INACTIVE' });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    insertContract(db, ownerId, { amount: 100, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, ownerId, { amount: 50, billing_interval: 'MONTHLY', status: 'ACTIVE' });
+    insertContract(db, ownerId, { amount: 999, billing_interval: 'MONTHLY', status: 'INACTIVE' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ totalMonthlySpending: number }>();
     expect(body.totalMonthlySpending).toBeCloseTo(150, 2);
   });
 
   it('normalizes QUARTERLY contracts to monthly equivalent', async () => {
     // €30/quarter → €10/month
-    insertContract(db, { amount: 30, billing_interval: 'QUARTERLY', status: 'ACTIVE' });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    insertContract(db, ownerId, { amount: 30, billing_interval: 'QUARTERLY', status: 'ACTIVE' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ totalMonthlySpending: number }>();
     expect(body.totalMonthlySpending).toBeCloseTo(10, 2);
   });
 
   it('normalizes YEARLY contracts to monthly equivalent', async () => {
     // €120/year → €10/month
-    insertContract(db, { amount: 120, billing_interval: 'YEARLY', status: 'ACTIVE' });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    insertContract(db, ownerId, { amount: 120, billing_interval: 'YEARLY', status: 'ACTIVE' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ totalMonthlySpending: number }>();
     expect(body.totalMonthlySpending).toBeCloseTo(10, 2);
   });
 
   it('excludes LIFETIME contracts from totalMonthlySpending', async () => {
-    insertContract(db, { amount: 999, billing_interval: 'LIFETIME', status: 'ACTIVE' });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    insertContract(db, ownerId, { amount: 999, billing_interval: 'LIFETIME', status: 'ACTIVE' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ totalMonthlySpending: number }>();
     expect(body.totalMonthlySpending).toBe(0);
   });
 
   it('returns contractsByCategory grouped by category with normalized totals', async () => {
-    insertContract(db, {
+    insertContract(db, ownerId, {
       category: 'HOUSING',
       amount: 1200,
       billing_interval: 'MONTHLY',
       status: 'ACTIVE',
     });
-    insertContract(db, {
+    insertContract(db, ownerId, {
       category: 'SUBSCRIPTIONS',
       amount: 15,
       billing_interval: 'MONTHLY',
       status: 'ACTIVE',
     });
-    insertContract(db, {
+    insertContract(db, ownerId, {
       category: 'SUBSCRIPTIONS',
       amount: 10,
       billing_interval: 'MONTHLY',
       status: 'ACTIVE',
     });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{
       contractsByCategory: Array<{
         category: string;
@@ -145,10 +155,10 @@ describe('GET /api/dashboard', () => {
   });
 
   it('returns upcomingRenewals for contracts in their action window (no cancellation period: 30-day default)', async () => {
-    insertContract(db, { name: 'Soon', end_date: daysFromNow(10), status: 'ACTIVE' });
-    insertContract(db, { name: 'Far', end_date: daysFromNow(60), status: 'ACTIVE' });
-    insertContract(db, { name: 'NoDate', end_date: null, status: 'ACTIVE' });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    insertContract(db, ownerId, { name: 'Soon', end_date: daysFromNow(10), status: 'ACTIVE' });
+    insertContract(db, ownerId, { name: 'Far', end_date: daysFromNow(60), status: 'ACTIVE' });
+    insertContract(db, ownerId, { name: 'NoDate', end_date: null, status: 'ACTIVE' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{
       upcomingRenewals: Array<{
         name: string;
@@ -168,13 +178,13 @@ describe('GET /api/dashboard', () => {
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 4);
     const endDateStr = endDate.toISOString().slice(0, 10);
-    insertContract(db, {
+    insertContract(db, ownerId, {
       name: '3MonthCancellation',
       end_date: endDateStr,
       cancellation_period_value: 3,
       cancellation_period_unit: 'MONTHS',
     });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{
       upcomingRenewals: Array<{ name: string; daysUntilCancellationDeadline: number }>;
     }>();
@@ -185,23 +195,27 @@ describe('GET /api/dashboard', () => {
   });
 
   it('excludes LIFETIME contracts from upcomingRenewals even with imminent end_date', async () => {
-    insertContract(db, {
+    insertContract(db, ownerId, {
       name: 'Lifetime License',
       billing_interval: 'LIFETIME',
       end_date: daysFromNow(5),
       status: 'ACTIVE',
     });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ upcomingRenewals: Array<unknown> }>();
     expect(body.upcomingRenewals).toHaveLength(0);
   });
 
   it('returns expiredContracts for contracts with a past end_date', async () => {
     const pastDate = daysFromNow(-10);
-    insertContract(db, { name: 'Old Contract', end_date: pastDate, status: 'ACTIVE' });
-    insertContract(db, { name: 'Current Contract', end_date: daysFromNow(10), status: 'ACTIVE' });
-    insertContract(db, { name: 'No Date', end_date: null, status: 'ACTIVE' });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    insertContract(db, ownerId, { name: 'Old Contract', end_date: pastDate, status: 'ACTIVE' });
+    insertContract(db, ownerId, {
+      name: 'Current Contract',
+      end_date: daysFromNow(10),
+      status: 'ACTIVE',
+    });
+    insertContract(db, ownerId, { name: 'No Date', end_date: null, status: 'ACTIVE' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{
       expiredContracts: Array<{ name: string; daysOverdue: number; endDate: string }>;
     }>();
@@ -212,14 +226,143 @@ describe('GET /api/dashboard', () => {
   });
 
   it('excludes LIFETIME contracts from expiredContracts even with a past end_date', async () => {
-    insertContract(db, {
+    insertContract(db, ownerId, {
       name: 'Lifetime Old',
       billing_interval: 'LIFETIME',
       end_date: daysFromNow(-5),
       status: 'ACTIVE',
     });
-    const res = await app.inject({ method: 'GET', url: '/api/dashboard' });
+    const res = await inject({ method: 'GET', url: '/api/dashboard' });
     const body = res.json<{ expiredContracts: Array<unknown> }>();
     expect(body.expiredContracts).toHaveLength(0);
+  });
+});
+
+describe('Cross-account dashboard isolation', () => {
+  let db: Database.Database;
+  let app: FastifyInstance;
+  let userA: string;
+  let userB: string;
+  let sessionA: string;
+  let sessionB: string;
+
+  function injectAs(sessionCookie: string, opts: InjectOptions) {
+    return app.inject({ ...opts, cookies: { [SESSION_COOKIE_NAME]: sessionCookie } });
+  }
+
+  beforeEach(async () => {
+    db = createDb(':memory:');
+    runMigrations(db);
+    app = await buildServer(db);
+    await app.ready();
+    ({ userId: userA, sessionId: sessionA } = createAuthenticatedSession(db, {
+      email: 'dash-a@example.test',
+    }));
+    ({ userId: userB, sessionId: sessionB } = createAuthenticatedSession(db, {
+      email: 'dash-b@example.test',
+    }));
+  });
+
+  afterEach(async () => {
+    await app.close();
+    db.close();
+  });
+
+  it("totalMonthlySpending and contractsByCategory reflect only the signed-in user's contracts", async () => {
+    insertContract(db, userA, {
+      name: 'A Subscription',
+      category: 'SUBSCRIPTIONS',
+      amount: 100,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
+    insertContract(db, userB, {
+      name: 'B Housing',
+      category: 'HOUSING',
+      amount: 1000,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+    });
+
+    const resA = await injectAs(sessionA, { method: 'GET', url: '/api/dashboard' });
+    const bodyA = resA.json<{
+      totalMonthlySpending: number;
+      contractsByCategory: Array<{ category: string; count: number }>;
+    }>();
+    expect(bodyA.totalMonthlySpending).toBeCloseTo(100, 2);
+    expect(bodyA.contractsByCategory).toHaveLength(1);
+    expect(bodyA.contractsByCategory[0]?.category).toBe('SUBSCRIPTIONS');
+
+    const resB = await injectAs(sessionB, { method: 'GET', url: '/api/dashboard' });
+    const bodyB = resB.json<{
+      totalMonthlySpending: number;
+      contractsByCategory: Array<{ category: string; count: number }>;
+    }>();
+    expect(bodyB.totalMonthlySpending).toBeCloseTo(1000, 2);
+    expect(bodyB.contractsByCategory).toHaveLength(1);
+    expect(bodyB.contractsByCategory[0]?.category).toBe('HOUSING');
+  });
+
+  it("upcomingRenewals and expiredContracts panels never include another user's contracts", async () => {
+    insertContract(db, userA, {
+      name: 'A Renewal',
+      end_date: daysFromNow(10),
+      status: 'ACTIVE',
+    });
+    insertContract(db, userA, {
+      name: 'A Expired',
+      end_date: daysFromNow(-10),
+      status: 'ACTIVE',
+    });
+    insertContract(db, userB, {
+      name: 'B Renewal',
+      end_date: daysFromNow(5),
+      status: 'ACTIVE',
+    });
+    insertContract(db, userB, {
+      name: 'B Expired',
+      end_date: daysFromNow(-5),
+      status: 'ACTIVE',
+    });
+
+    const resA = await injectAs(sessionA, { method: 'GET', url: '/api/dashboard' });
+    const bodyA = resA.json<{
+      upcomingRenewals: Array<{ name: string }>;
+      expiredContracts: Array<{ name: string }>;
+    }>();
+    expect(bodyA.upcomingRenewals.map((c) => c.name)).toEqual(['A Renewal']);
+    expect(bodyA.expiredContracts.map((c) => c.name)).toEqual(['A Expired']);
+
+    const resB = await injectAs(sessionB, { method: 'GET', url: '/api/dashboard' });
+    const bodyB = resB.json<{
+      upcomingRenewals: Array<{ name: string }>;
+      expiredContracts: Array<{ name: string }>;
+    }>();
+    expect(bodyB.upcomingRenewals.map((c) => c.name)).toEqual(['B Renewal']);
+    expect(bodyB.expiredContracts.map((c) => c.name)).toEqual(['B Expired']);
+  });
+
+  it("an account with no contracts sees an entirely empty dashboard regardless of other accounts' data", async () => {
+    insertContract(db, userA, {
+      name: 'A Only',
+      amount: 500,
+      billing_interval: 'MONTHLY',
+      status: 'ACTIVE',
+      end_date: daysFromNow(10),
+    });
+
+    const resB = await injectAs(sessionB, { method: 'GET', url: '/api/dashboard' });
+    const bodyB = resB.json<{
+      totalMonthlySpending: number;
+      contractsByCategory: Array<unknown>;
+      upcomingRenewals: Array<unknown>;
+      expiredContracts: Array<unknown>;
+    }>();
+    expect(bodyB).toMatchObject({
+      totalMonthlySpending: 0,
+      contractsByCategory: [],
+      upcomingRenewals: [],
+      expiredContracts: [],
+    });
   });
 });

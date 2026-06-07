@@ -15,7 +15,8 @@ Personal Contract Management ist eine lokale Web-App, die alle deine Verträge �
 7. [Verträge exportieren](#7-verträge-exportieren)
 8. [Anonymisierung](#8-anonymisierung)
 9. [Sprache](#9-sprache)
-10. [Feldreferenz](#10-feldreferenz)
+10. [Konten & Anmeldung](#10-konten--anmeldung)
+11. [Feldreferenz](#11-feldreferenz)
 
 ---
 
@@ -268,7 +269,40 @@ Währungsbeträge und Datumsangaben werden entsprechend dem gewählten Gebietssc
 
 ---
 
-## 10. Feldreferenz
+## 10. Konten & Anmeldung
+
+Die App verlangt jetzt von jedem Besucher eine Anmeldung — jedes Familienmitglied erhält ein eigenes Konto, und Verträge gehören dem Konto, das sie angelegt hat. Niemand kann die Verträge eines anderen Kontos sehen oder ändern — auch nicht im Dashboard, bei Exporten oder Importen.
+
+### An- und Abmelden
+
+Wenn du die App öffnest und keine aktive Sitzung hast, landest du auf der Anmeldeseite. Gib deine E-Mail-Adresse und dein Passwort ein, um fortzufahren. Über die Schaltfläche **Abmelden** in der oberen rechten Ecke beendest du deine Sitzung auf diesem Gerät.
+
+Wenn du zu oft hintereinander das falsche Passwort eingibst, wird das Konto vorübergehend gesperrt — warte ein paar Minuten und versuche es dann erneut mit dem richtigen Passwort.
+
+### Das erste Konto
+
+Beim allerersten Start der App auf einer frischen Installation wird automatisch ein **Administratorkonto** angelegt; dessen E-Mail-Adresse und ein Einmalpasswort werden im Server-Log ausgegeben (sichtbar mit `docker compose logs` oder im Terminal, in dem das Backend läuft). Melde dich mit diesen Zugangsdaten an und **ändere das Passwort sofort** über „Mein Konto" (siehe unten).
+
+Falls du von einer älteren Version der App aktualisierst, wird genau dieses Administratorkonto angelegt und **alle deine bestehenden Verträge werden automatisch diesem Konto zugewiesen** — nichts geht verloren. Anschließend kannst du eigene Konten für die übrigen Familienmitglieder anlegen und bei Bedarf Verträge neu anlegen oder zuordnen.
+
+### Mein Konto
+
+Jeder angemeldete Benutzer kann über **Mein Konto** (Link in der oberen rechten Ecke) sein eigenes Passwort ändern. Du benötigst dazu dein aktuelles Passwort sowie ein neues (mindestens 8 Zeichen).
+
+### Konten verwalten (nur Administratoren)
+
+Administratoren sehen zusätzlich den Link **Konten verwalten** in der oberen rechten Ecke. Dort kannst du:
+
+- Ein neues Konto **anlegen** — mit E-Mail-Adresse, Anzeigename, Rolle (Administrator oder Mitglied) und einem Anfangspasswort, das die Person nach der ersten Anmeldung ändern sollte
+- Ein Konto **archivieren**, um jemandem den Zugriff zu entziehen (z. B. wenn ein Familienmitglied auszieht). Archivierte Konten können sich nicht mehr anmelden, ihre Daten bleiben jedoch für eine Aufbewahrungsfrist erhalten, falls du es dir anders überlegst
+- Ein archiviertes Konto innerhalb dieser Frist **reaktivieren**, um den Zugriff samt aller zugehörigen Verträge wiederherzustellen
+- Ein Konto zwischen den Rollen Administrator und Mitglied **befördern/zurückstufen**
+
+Die App stellt stets sicher, dass mindestens ein aktiver Administrator bestehen bleibt — du kannst den letzten verbleibenden Administrator weder archivieren noch zurückstufen, damit sich der Haushalt nie selbst aus der Kontoverwaltung aussperrt.
+
+---
+
+## 11. Feldreferenz
 
 | Feld | Pflicht | Einschränkungen | Hinweise |
 |------|---------|-----------------|---------|

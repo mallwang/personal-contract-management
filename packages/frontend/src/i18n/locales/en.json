@@ -5,7 +5,10 @@
     "addContract": "Add Contract",
     "manageContracts": "Manage Contracts",
     "backToDashboard": "← Dashboard",
-    "backToContracts": "← Contracts"
+    "backToContracts": "← Contracts",
+    "accounts": "Manage Accounts",
+    "myAccount": "My Account",
+    "backToAccounts": "← Accounts"
   },
   "common": {
     "loading": "Loading…",
@@ -141,5 +144,58 @@
     "toggleAriaLabel": "Toggle contract name anonymization",
     "anonymizeContract": "Anonymize this contract",
     "anonymizeContractHint": "Always hide the name of this contract in the list view"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "submitLabel": "Sign in",
+    "submitting": "Signing in…",
+    "errorInvalidCredentials": "Invalid email or password.",
+    "errorLocked": "Too many failed attempts. Please try again later.",
+    "errorGeneric": "Sign-in failed. Please try again.",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…"
+  },
+  "accountsAdmin": {
+    "title": "Manage accounts",
+    "subtitle": "Create, archive, reactivate, and change roles for household accounts.",
+    "newAccountTitle": "New account",
+    "emailLabel": "Email",
+    "displayNameLabel": "Display name",
+    "roleLabel": "Role",
+    "initialPasswordLabel": "Initial password",
+    "roleAdmin": "Administrator",
+    "roleMember": "Member",
+    "statusActive": "Active",
+    "statusArchived": "Archived",
+    "createButton": "Create account",
+    "creating": "Creating…",
+    "archiveButton": "Archive",
+    "reactivateButton": "Reactivate",
+    "makeAdminButton": "Make administrator",
+    "makeMemberButton": "Make member",
+    "loadError": "Failed to load accounts.",
+    "createError": "Failed to create account.",
+    "actionError": "The action could not be completed.",
+    "lastAdminError": "Cannot remove the last active administrator.",
+    "duplicateEmailError": "This email address is already in use.",
+    "columnName": "Name",
+    "columnEmail": "Email",
+    "columnRole": "Role",
+    "columnStatus": "Status",
+    "columnActions": "Actions",
+    "createSuccess": "Account created."
+  },
+  "accountSettings": {
+    "title": "My account",
+    "subtitle": "Update your password. You will need it the next time you sign in.",
+    "currentPasswordLabel": "Current password",
+    "newPasswordLabel": "New password",
+    "submitLabel": "Change password",
+    "submitting": "Updating…",
+    "success": "Your password has been changed.",
+    "errorInvalidCurrent": "The current password is incorrect.",
+    "errorGeneric": "Failed to change password. Please try again."
   }
 }

@@ -14,6 +14,9 @@ data/
 *.db
 *.db-journal
 .vite/
+playwright/.auth/
+test-results/
+playwright-report/
 .DS_Store
 Thumbs.db
 *.tmp

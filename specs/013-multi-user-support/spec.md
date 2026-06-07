@@ -78,35 +78,46 @@ appear anywhere — not in the list, dashboard summaries, or exports.
 
 ---
 
-### User Story 3 - Administrator manages who has access to the household (Priority: P3)
+### User Story 3 - Administrator invites and manages who has access to the household (Priority: P3)
 
-A designated administrator (e.g., the person who set up the application) can add new family
-members, remove people who should no longer have access (e.g., after a household change), and
-see the current list of people with accounts — without needing to edit configuration files or
-the database directly.
+A designated administrator (e.g., the person who set up the application) can invite new family
+members by entering their email address — the application emails them a personal link to set up
+their own account — remove people who should no longer have access (e.g., after a household
+change), and see the current list of people with accounts. None of this requires editing
+configuration files or the database directly.
 
 **Why this priority**: Account lifecycle management is necessary for the feature to be usable
 day-to-day (new family members joining, others leaving), but the application is still useful with
 just Story 1 and 2 in place and a manually-provisioned set of accounts, so this can follow.
+Email-based invitations make onboarding self-service for the invitee (they choose their own
+password and prove they control the email address) rather than requiring the administrator to
+hand over and manage credentials directly.
 
-**Independent Test**: Can be fully tested by signing in as the administrator, creating a new
-family member account through the application's interface, signing in as that new member, and
-then having the administrator remove the account and confirming the removed member can no longer
-sign in.
+**Independent Test**: Can be fully tested by signing in as the administrator, sending an
+invitation to a test email address, completing the link-based setup as that invitee, signing in
+as the new member, and then having the administrator remove the account and confirming the
+removed member can no longer sign in.
 
 **Acceptance Scenarios**:
 
-1. **Given** an administrator is signed in, **When** they create an account for a new family
-   member, **Then** that person can subsequently sign in with the provided credentials.
-2. **Given** an administrator is signed in, **When** they view the list of accounts, **Then**
-   they see every family member who currently has access.
-3. **Given** an administrator removes a family member's account, **When** that person tries to
+1. **Given** an administrator is signed in, **When** they invite a new family member by entering
+   their email address, **Then** that person receives an email containing a personal link to set
+   up their account.
+2. **Given** an invited family member opens their invitation link, **When** they verify their
+   email address and choose a password, **Then** their account becomes active and they can sign
+   in immediately afterward.
+3. **Given** an invitation link has expired or was already used, **When** someone tries to open
+   it, **Then** they see a clear explanation and the administrator can send a fresh invitation to
+   the same address.
+4. **Given** an administrator is signed in, **When** they view the list of accounts, **Then**
+   they see every family member who currently has access (and any invitations still pending).
+5. **Given** an administrator removes a family member's account, **When** that person tries to
    sign in afterward, **Then** access is denied and their data is archived (not immediately
    deleted).
-4. **Given** an administrator removed an account by mistake, **When** they reactivate it within
+6. **Given** an administrator removed an account by mistake, **When** they reactivate it within
    the retention period, **Then** the person can sign in again and finds their original
    contracts intact.
-5. **Given** a non-administrator family member, **When** they try to reach account-management
+7. **Given** a non-administrator family member, **When** they try to reach account-management
    features, **Then** they are not able to view or change other people's accounts.
 
 ---
@@ -140,6 +151,19 @@ sign in.
 - What happens if an administrator needs to help a family member with their contracts (e.g.,
   troubleshooting)? Administrators manage accounts only — they MUST NOT gain implicit access to
   other users' private contract data through their administrative role.
+- What happens if the invitation email cannot be delivered (e.g., mistyped address, mail
+  delivery failure)? The administrator MUST be able to see that the invitation is still pending
+  and resend or cancel it — no account should be silently stuck waiting on an email nobody will
+  receive.
+- What happens if someone tries to reuse an invitation link after it has already been accepted,
+  or opens it after it has expired? The system MUST reject the attempt with a clear explanation
+  and never create or activate an account from a stale or already-used link.
+- What happens if an administrator invites an email address that already belongs to an active or
+  archived account? The system MUST detect this and inform the administrator instead of creating
+  a confusing duplicate account.
+- What happens if the application's outbound email capability is unavailable or misconfigured
+  (e.g., at a small self-hosted deployment)? Invitation creation MUST clearly fail or warn rather
+  than silently leaving an invitee with no way to ever receive their link.
 
 ## Requirements *(mandatory)*
 
@@ -166,9 +190,22 @@ sign in.
   that can manage user accounts, and a standard member role that cannot — and MUST prevent
   standard members from accessing account-management capabilities. Holding the administrator
   role MUST NOT grant any additional access to other users' contract data.
-- **FR-009**: The system MUST allow an administrator to create new accounts, view the list of
-  existing accounts, and remove (revoke access for) accounts, entirely through the application's
-  own interface.
+- **FR-009**: The system MUST allow an administrator to invite a new family member by entering
+  their email address, view the list of existing accounts and pending invitations, and remove
+  (revoke access for) accounts — entirely through the application's own interface.
+- **FR-009a**: When an administrator sends an invitation, the system MUST email the invited
+  address a unique, personal link that lets the recipient verify they control that address and
+  set up their own account — no account MUST be created or activated until the recipient
+  completes this step.
+- **FR-009b**: The system MUST let an invited person, via their invitation link, confirm their
+  email address and choose their own password, after which their account becomes active and
+  ready for sign-in. Credentials are never chosen by, or transmitted through, the administrator.
+- **FR-009c**: Invitation links MUST expire after a defined period and MUST be usable only once;
+  the system MUST reject expired or already-used links with a clear explanation, and MUST let an
+  administrator cancel a pending invitation or send a new one to the same address.
+- **FR-009d**: The system MUST prevent an administrator from creating a duplicate invitation or
+  account for an email address that already has an active or archived account, surfacing this to
+  the administrator instead of silently creating confusing duplicates.
 - **FR-010**: The system MUST prevent the removal or demotion of the last remaining administrator
   account, so the household always retains at least one person able to manage accounts.
 - **FR-011**: The system MUST immediately invalidate a user's active session when their account
@@ -205,6 +242,11 @@ sign in.
 - **Session**: Represents one period of authenticated access for a user on a device — created at
   sign-in, ended at sign-out, automatic expiry after inactivity, or administrator-driven removal
   of the underlying account.
+- **Invitation**: Represents an administrator's pending offer of access to a specific email
+  address. Holds the target email address, a unique link/token, an expiry time, and a status
+  (pending, accepted, expired, cancelled). Converts into an active User Account once the
+  recipient verifies their email and sets a password; otherwise it lapses or can be cancelled
+  without ever producing an account.
 - **Contract** *(existing entity, extended)*: A private contract record belonging to exactly one
   user account (its owner). Visible, editable, and deletable only by its owner — never by other
   household members, regardless of their role.
@@ -213,8 +255,9 @@ sign in.
 
 ### Measurable Outcomes
 
-- **SC-001**: A new family member can go from receiving their account credentials to viewing the
-  household's contracts in under 2 minutes.
+- **SC-001**: A newly invited family member can go from opening their invitation email to
+  actively viewing their own contracts (verifying their email, choosing a password, and signing
+  in) in under 5 minutes, without any help from the administrator beyond having sent the invite.
 - **SC-002**: 100% of contract data that existed prior to this feature remains accessible after
   the upgrade (as the designated account's private list), with zero records lost.
 - **SC-003**: No contract data is viewable or editable by anyone who has not successfully signed
@@ -223,11 +266,13 @@ sign in.
 - **SC-004**: Zero instances of one user's contract data appearing anywhere in another user's
   views, dashboards, summaries, search results, or exports — verified by cross-account testing
   across every surface of the application.
-- **SC-005**: An administrator can onboard a new family member or revoke a departed member's
-  access in under 3 minutes using only the application's own interface, with no technical setup
-  steps outside it.
+- **SC-005**: An administrator can send an invitation to a new family member or revoke a departed
+  member's access in under 3 minutes using only the application's own interface, with no
+  technical setup steps outside it.
 - **SC-006**: Repeated incorrect sign-in attempts against a single account are slowed or blocked
   such that an attacker cannot feasibly guess a password through the sign-in form alone.
+- **SC-007**: 100% of invitation links that are expired, already used, or cancelled are rejected
+  without ever producing an active account — verified by attempting to reuse or replay each kind.
 
 ## Assumptions
 
@@ -239,8 +284,20 @@ sign in.
   real-world contract (e.g., shared rent) reflected in their own list must enter it themselves —
   cross-account sharing is explicitly out of scope and may be considered as a future enhancement.
 - The administrator who performs the Docker deployment is responsible for creating the very first
-  account during initial setup; there is no public self-registration flow, since this remains a
-  personal/family tool rather than a multi-tenant SaaS product.
+  account during initial setup; there is no public self-registration flow — new family members
+  join only by being invited by an existing administrator, since this remains a personal/family
+  tool rather than a multi-tenant SaaS product.
+- The deployment provides the application with a working capability to send outbound emails
+  (configured by the administrator as part of setting up the deployment, similar to the existing
+  [012-docker-packaging](../012-docker-packaging/) configuration steps); without it, invitations
+  cannot be delivered. Setting up that capability is an infrastructure/deployment concern outside
+  this feature's scope, but the feature depends on it being available and MUST behave clearly
+  (per the Edge Cases) when it is not.
+- Sending other kinds of emails — for example, notifying users about upcoming contract renewals —
+  is explicitly **out of scope** for this feature. It is a distinct capability that would apply
+  equally to a single-user setup and deserves its own specification (covering timing, frequency,
+  opt-out, etc.); it is noted here only as a likely future enhancement that could reuse the same
+  outbound-email capability this feature introduces.
 - Two roles are sufficient for a family context: administrator (manages accounts only — never
   other users' contract data) and standard member (manages their own contracts only). No finer-
   grained per-contract permissions are required for the initial version.

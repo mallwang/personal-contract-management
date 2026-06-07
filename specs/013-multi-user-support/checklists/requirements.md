@@ -38,4 +38,9 @@
   retention window before permanent deletion, with administrator-driven reactivation possible
   within that window. The spec was revised end-to-end (user stories, requirements, edge cases,
   entities, success criteria, assumptions) to stay consistent with these decisions.
+- A follow-up round incorporated an email-based invitation/verification flow for onboarding new
+  family members (User Story 3, FR-009/FR-009a–d, the new "Invitation" entity, and related edge
+  cases/success criteria). Renewal-notification emails were explicitly scoped *out* of this
+  feature at the user's direction — they are noted in Assumptions as a likely future, separate
+  feature since they are not multi-user-specific.
 - Ready for `/speckit-plan`.

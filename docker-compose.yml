@@ -1,0 +1,12 @@
+services:
+  app:
+    image: pcm
+    build: .
+    ports:
+      - "3001:3000" # Change 3001 to any available host port
+    environment:
+      NODE_ENV: production
+      DATABASE_PATH: /data/contracts.db
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

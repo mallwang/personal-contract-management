@@ -74,6 +74,26 @@ packages/
     └── src/services/     # API-Hooks (TanStack Query)
 ```
 
+## Bereitstellung
+
+Die App lässt sich als einzelnes Docker-Image verpacken und selbst hosten, z. B. auf einem Homeserver.
+
+**Voraussetzungen**: [Docker](https://docs.docker.com/get-docker/) und Docker Compose (in Docker Desktop enthalten / `docker compose`).
+
+```bash
+# Image bauen
+docker build -t pcm .
+
+# App starten (erstellt beim ersten Start auch ./data)
+docker compose up -d
+```
+
+Die App ist anschließend unter **http://localhost:3001** erreichbar. Die SQLite-Datenbank wird unter `./data/contracts.db` auf dem Host gespeichert und übersteht somit Container-Neustarts und -Neuerstellungen.
+
+**Host-Port ändern**: die Zeile `ports:` in `docker-compose.yml` bearbeiten — nur die linke Seite (Host-Port) muss geändert werden, z. B. macht `"9090:3000"` die App unter Port 9090 erreichbar.
+
+**Speicherort der Datenbank ändern**: die Zeile `volumes:` in `docker-compose.yml` auf ein beliebiges Host-Verzeichnis anpassen, z. B. `/mnt/storage/pcm-data:/data`.
+
 ## Datenbankskripte
 
 ```bash

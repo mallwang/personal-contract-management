@@ -1,5 +1,8 @@
 import Fastify, { type FastifyInstance, type FastifyError } from 'fastify';
 import cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import type Database from 'better-sqlite3';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { contractRoutes } from './routes/contracts.js';
@@ -10,7 +13,10 @@ declare module 'fastify' {
   }
 }
 
-export async function buildServer(db: Database.Database): Promise<FastifyInstance> {
+export async function buildServer(
+  db: Database.Database,
+  options: { staticDir?: string } = {},
+): Promise<FastifyInstance> {
   const fastify = Fastify({ logger: true });
 
   await fastify.register(cors, { origin: true });
@@ -28,6 +34,19 @@ export async function buildServer(db: Database.Database): Promise<FastifyInstanc
 
   await fastify.register(dashboardRoutes);
   await fastify.register(contractRoutes);
+
+  const staticDir =
+    options.staticDir ??
+    (process.env['NODE_ENV'] === 'production'
+      ? join(dirname(fileURLToPath(import.meta.url)), 'public')
+      : undefined);
+
+  if (staticDir) {
+    await fastify.register(fastifyStatic, { root: staticDir, prefix: '/' });
+    fastify.setNotFoundHandler((_request, reply) => {
+      void reply.sendFile('index.html');
+    });
+  }
 
   return fastify;
 }

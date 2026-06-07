@@ -74,6 +74,26 @@ packages/
     └── src/services/     # API hooks (TanStack Query)
 ```
 
+## Deployment
+
+The app can be packaged as a single Docker image and self-hosted, e.g. on a homeserver.
+
+**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and Docker Compose (bundled with Docker Desktop / `docker compose`).
+
+```bash
+# Build the image
+docker build -t pcm .
+
+# Start the app (also creates ./data on first run)
+docker compose up -d
+```
+
+The app is then available at **http://localhost:3001**. The SQLite database is stored at `./data/contracts.db` on the host, so it survives container restarts and recreation.
+
+**Changing the host port**: edit the `ports:` line in `docker-compose.yml` — only the left-hand side (host port) needs to change, e.g. `"9090:3000"` exposes the app on port 9090.
+
+**Changing the database location**: edit the `volumes:` line in `docker-compose.yml` to point at any host directory, e.g. `/mnt/storage/pcm-data:/data`.
+
 ## Database scripts
 
 ```bash

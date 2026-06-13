@@ -1,0 +1,16 @@
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--mantine-color-default-border);
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+}
+
+.inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-xl);
+}
+
+.links {
+  gap: var(--mantine-spacing-xs);
+}

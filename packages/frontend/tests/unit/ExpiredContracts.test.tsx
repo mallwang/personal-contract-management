@@ -1,11 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { MantineProvider } from '@mantine/core';
 import { ExpiredContracts } from '../../src/components/ExpiredContracts.js';
 import type { ExpiredContract } from '@pcm/shared';
 
 function renderWithRouter(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  return render(
+    <MantineProvider>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </MantineProvider>,
+  );
 }
 
 const STORAGE_KEY = 'pcm-anonymize';

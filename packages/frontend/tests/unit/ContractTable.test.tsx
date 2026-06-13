@@ -2,8 +2,22 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { MantineProvider } from '@mantine/core';
 import { ContractTable } from '../../src/components/ContractTable.js';
 import type { ContractData } from '@pcm/shared';
+
+function renderTable(
+  contracts: ContractData[],
+  extra?: Partial<Parameters<typeof ContractTable>[0]>,
+) {
+  return render(
+    <MantineProvider>
+      <MemoryRouter>
+        <ContractTable contracts={contracts} onDelete={vi.fn()} {...extra} />
+      </MemoryRouter>
+    </MantineProvider>,
+  );
+}
 
 const sampleContracts: ContractData[] = [
   {
@@ -42,31 +56,19 @@ const sampleContracts: ContractData[] = [
 
 describe('ContractTable – data display', () => {
   it('renders a row for each contract', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     expect(screen.getByText('Netflix')).toBeInTheDocument();
     expect(screen.getByText('Rent')).toBeInTheDocument();
   });
 
   it('displays the amount and interval label for each contract', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     expect(screen.getByText(/15\.99.*Monthly|Monthly.*15\.99/)).toBeInTheDocument();
     expect(screen.getByText(/1[,.]?200.*Monthly|Monthly.*1[,.]?200/)).toBeInTheDocument();
   });
 
   it('shows the interval label in the column header', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     expect(screen.getByText(/amount.*interval/i)).toBeInTheDocument();
   });
 
@@ -78,30 +80,18 @@ describe('ContractTable – data display', () => {
         billingInterval: 'QUARTERLY',
       },
     ];
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={quarterly} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(quarterly);
     expect(screen.getByText(/30.*Quarterly|Quarterly.*30/)).toBeInTheDocument();
   });
 
   it('displays the status for each contract', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(screen.getByText('Inactive')).toBeInTheDocument();
   });
 
   it('displays the end date formatted for the active locale', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     const formatted = new Intl.DateTimeFormat('en', {
       day: '2-digit',
       month: '2-digit',
@@ -111,21 +101,18 @@ describe('ContractTable – data display', () => {
   });
 
   it('displays a dash when end date is null', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     expect(screen.getByText('—')).toBeInTheDocument();
   });
 
   it('renders an empty-state message when no contracts are provided', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={[]} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable([]);
     expect(screen.getByText(/no contracts yet/i)).toBeInTheDocument();
+  });
+
+  it('table uses Mantine Table component (has data-with-table-border attribute)', () => {
+    renderTable(sampleContracts);
+    expect(screen.getByRole('table')).toHaveAttribute('data-with-table-border');
   });
 });
 
@@ -133,31 +120,13 @@ describe('ContractTable – anonymization', () => {
   const getDisplayName = (c: ContractData) => `Fantasy-${c.id.slice(0, 4)}`;
 
   it('shows real names when isAnonymized=false', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable
-          contracts={sampleContracts}
-          onDelete={vi.fn()}
-          isAnonymized={false}
-          getDisplayName={getDisplayName}
-        />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts, { isAnonymized: false, getDisplayName });
     expect(screen.getByText('Netflix')).toBeInTheDocument();
     expect(screen.getByText('Rent')).toBeInTheDocument();
   });
 
   it('shows fantasy names when isAnonymized=true', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable
-          contracts={sampleContracts}
-          onDelete={vi.fn()}
-          isAnonymized={true}
-          getDisplayName={getDisplayName}
-        />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts, { isAnonymized: true, getDisplayName });
     expect(screen.queryByText('Netflix')).not.toBeInTheDocument();
     expect(screen.queryByText('Rent')).not.toBeInTheDocument();
     expect(screen.getByText(getDisplayName(sampleContracts[0]!))).toBeInTheDocument();
@@ -165,11 +134,7 @@ describe('ContractTable – anonymization', () => {
   });
 
   it('works without optional anonymization props (backwards compat)', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     expect(screen.getByText('Netflix')).toBeInTheDocument();
   });
 });
@@ -177,11 +142,7 @@ describe('ContractTable – anonymization', () => {
 describe('ContractTable – inline delete confirmation', () => {
   it('shows Confirm and Cancel buttons after clicking Delete', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     expect(screen.getByRole('button', { name: /confirm/i })).toBeInTheDocument();
@@ -190,11 +151,7 @@ describe('ContractTable – inline delete confirmation', () => {
 
   it('reverts to normal row state after clicking Cancel', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     await user.click(screen.getByRole('button', { name: /cancel/i }));
@@ -204,11 +161,7 @@ describe('ContractTable – inline delete confirmation', () => {
   it('calls onDelete with the correct id after clicking Confirm', async () => {
     const onDelete = vi.fn();
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={onDelete} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts, { onDelete });
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     await user.click(screen.getByRole('button', { name: /confirm/i }));
@@ -217,11 +170,7 @@ describe('ContractTable – inline delete confirmation', () => {
 
   it('does not affect other rows while one is in confirmation mode', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sampleContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sampleContracts);
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]!);
     // Second row should still have its Delete button
@@ -229,7 +178,7 @@ describe('ContractTable – inline delete confirmation', () => {
   });
 });
 
-// Shared test data for sort tests: original order is Zebra, Apple, Mango
+// Shared test data: original order is Zebra, Apple, Mango
 // so sorted order will always differ from original, making sort observable.
 const sortContracts: ContractData[] = [
   {
@@ -285,11 +234,7 @@ const sortContracts: ContractData[] = [
 describe('ContractTable – sorting', () => {
   it('clicking Name header once sorts rows A→Z', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     await user.click(screen.getByRole('columnheader', { name: /^name/i }));
     const rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Apple');
@@ -299,11 +244,7 @@ describe('ContractTable – sorting', () => {
 
   it('clicking Name header twice sorts rows Z→A', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     const nameHeader = screen.getByRole('columnheader', { name: /^name/i });
     await user.click(nameHeader);
     await user.click(nameHeader);
@@ -315,16 +256,11 @@ describe('ContractTable – sorting', () => {
 
   it('clicking Name header three times returns to default name-asc order', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     const nameHeader = screen.getByRole('columnheader', { name: /^name/i });
     await user.click(nameHeader);
     await user.click(nameHeader);
     await user.click(nameHeader);
-    // null sortState falls back to case-insensitive name-asc — same order as one click
     const rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Apple');
     expect(rows[2]).toHaveTextContent('Mango');
@@ -333,11 +269,7 @@ describe('ContractTable – sorting', () => {
 
   it('clicking Amount header sorts rows by numeric amount ascending', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     await user.click(screen.getByRole('columnheader', { name: /^amount/i }));
     const rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Apple'); // 10
@@ -347,11 +279,7 @@ describe('ContractTable – sorting', () => {
 
   it('null endDate sorts last ascending and first descending', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     const endDateHeader = screen.getByRole('columnheader', { name: /^end date/i });
     await user.click(endDateHeader);
     let rows = screen.getAllByRole('row');
@@ -365,11 +293,7 @@ describe('ContractTable – sorting', () => {
 
   it('clicking a different column resets sort to ascending on the new column', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     await user.click(screen.getByRole('columnheader', { name: /^name/i }));
     // Category asc: HOUSING < SUBSCRIPTIONS < UTILITIES
     await user.click(screen.getByRole('columnheader', { name: /^category/i }));
@@ -382,11 +306,7 @@ describe('ContractTable – sorting', () => {
 
 describe('ContractTable – sort indicators', () => {
   it('when no sort is active, each sortable header shows a neutral sort icon', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     const sortableHeaders = ['name', 'category', 'amount', 'status', 'end date'];
     for (const name of sortableHeaders) {
       const header = screen.getByRole('columnheader', { name: new RegExp(`^${name}`, 'i') });
@@ -396,11 +316,7 @@ describe('ContractTable – sort indicators', () => {
 
   it('after clicking a sortable header once, that header shows an ascending icon', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     const nameHeader = screen.getByRole('columnheader', { name: /^name/i });
     await user.click(nameHeader);
     expect(within(nameHeader).getByRole('img', { name: 'Sorted ascending' })).toBeInTheDocument();
@@ -408,11 +324,7 @@ describe('ContractTable – sort indicators', () => {
 
   it('after clicking a sortable header twice, that header shows a descending icon', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     const nameHeader = screen.getByRole('columnheader', { name: /^name/i });
     await user.click(nameHeader);
     await user.click(nameHeader);
@@ -420,11 +332,7 @@ describe('ContractTable – sort indicators', () => {
   });
 
   it('the Actions column header contains no sort icon', () => {
-    render(
-      <MemoryRouter>
-        <ContractTable contracts={sortContracts} onDelete={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderTable(sortContracts);
     const actionsHeader = screen.getByRole('columnheader', { name: /^actions/i });
     expect(within(actionsHeader).queryByRole('img', { name: 'Sort' })).not.toBeInTheDocument();
   });

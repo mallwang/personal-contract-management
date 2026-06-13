@@ -13,10 +13,11 @@ export const CATEGORY_ICON_MAP: Record<Category | 'DEFAULT', LucideIcon> = {
 
 interface CategoryIconProps {
   category: Category;
+  size?: number;
   className?: string;
 }
 
-export function CategoryIcon({ category, className }: CategoryIconProps) {
+export function CategoryIcon({ category, size, className }: CategoryIconProps) {
   const Icon = CATEGORY_ICON_MAP[category] ?? CATEGORY_ICON_MAP.DEFAULT;
-  return <Icon className={className} />;
+  return <Icon size={size} className={className} />;
 }

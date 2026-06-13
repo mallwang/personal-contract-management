@@ -2,12 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { ExpiredContract } from '@pcm/shared';
 import { AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card.js';
-import { Badge } from './ui/badge.js';
-import { cn } from '../lib/utils.js';
+import { Paper, Group, Title, Text, Badge, Stack } from '@mantine/core';
 import { useAnonymization } from '../hooks/useAnonymization.js';
 import { useLocaleFormat } from '../hooks/useLocaleFormat.js';
 import { getFantasyName, FANTASY_NAMES } from '../data/fantasyNames.js';
+import classes from './ExpiredContracts.module.css';
 
 interface ExpiredContractsProps {
   expiredContracts: ExpiredContract[];
@@ -27,51 +26,50 @@ export function ExpiredContracts({ expiredContracts }: ExpiredContractsProps) {
   }
 
   return (
-    <Card className={cn(hasExpired && 'border-amber-200 bg-amber-50')}>
-      <CardHeader className="flex-row items-center justify-between pb-2">
-        <CardTitle>{t('dashboard.expiredContracts')}</CardTitle>
+    <Paper withBorder radius="md" p="md" className={hasExpired ? classes.amberCard : undefined}>
+      <Group justify="space-between" mb="sm">
+        <Title order={4}>{t('dashboard.expiredContracts')}</Title>
         <AlertTriangle
-          className={cn(
-            'h-4 w-4',
-            hasExpired ? 'text-amber-500' : 'text-[--color-muted-foreground]',
-          )}
+          size={16}
+          color={hasExpired ? 'var(--mantine-color-orange-6)' : 'var(--mantine-color-dimmed)'}
         />
-      </CardHeader>
-      <CardContent>
-        {!hasExpired ? (
-          <p className="expired-contracts__empty text-sm text-[--color-muted-foreground]">
-            {t('dashboard.noExpiredContracts')}
-          </p>
-        ) : (
-          <ul className="expired-contracts__list max-h-64 divide-y divide-[--color-border] overflow-y-auto">
-            {expiredContracts.map((contract) => (
-              <li key={contract.id} className="expired-contracts__item first:pt-0 last:pb-0">
-                <Link
-                  to={`/contracts/${contract.id}/edit`}
-                  className="flex items-center justify-between py-3 hover:opacity-80"
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <span className="expired-contracts__name font-medium">
-                      {resolveName(contract)}
-                    </span>
-                    <span className="expired-contracts__category text-xs text-[--color-muted-foreground]">
-                      {t(`category.${contract.category}`)}
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="expired-contracts__date text-xs text-[--color-muted-foreground]">
-                      {formatDate(contract.endDate)}
-                    </span>
-                    <Badge variant="warning">
-                      {t('dashboard.daysOverdue', { count: contract.daysOverdue })}
-                    </Badge>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+      </Group>
+      {!hasExpired ? (
+        <Text size="sm" c="dimmed" className="expired-contracts__empty">
+          {t('dashboard.noExpiredContracts')}
+        </Text>
+      ) : (
+        <Stack
+          gap={0}
+          className="expired-contracts__list"
+          style={{ maxHeight: '16rem', overflowY: 'auto' }}
+        >
+          {expiredContracts.map((contract) => (
+            <Link
+              key={contract.id}
+              to={`/contracts/${contract.id}/edit`}
+              className={`${classes.item} expired-contracts__item`}
+            >
+              <div>
+                <Text size="sm" fw={500} className="expired-contracts__name">
+                  {resolveName(contract)}
+                </Text>
+                <Text size="xs" c="dimmed" className="expired-contracts__category">
+                  {t(`category.${contract.category}`)}
+                </Text>
+              </div>
+              <Stack gap={4} align="flex-end">
+                <Text size="xs" c="dimmed" className="expired-contracts__date">
+                  {formatDate(contract.endDate)}
+                </Text>
+                <Badge color="orange" size="sm">
+                  {t('dashboard.daysOverdue', { count: contract.daysOverdue })}
+                </Badge>
+              </Stack>
+            </Link>
+          ))}
+        </Stack>
+      )}
+    </Paper>
   );
 }

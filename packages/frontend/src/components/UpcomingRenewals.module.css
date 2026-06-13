@@ -1,0 +1,11 @@
+.item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--mantine-spacing-xs) 0;
+  border-top: 1px solid var(--mantine-color-gray-2);
+}
+
+.item:first-child {
+  border-top: none;
+}

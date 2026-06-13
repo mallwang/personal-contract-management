@@ -1,0 +1,44 @@
+.th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.thInner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.thActions {
+  white-space: nowrap;
+}
+
+.sortIcon {
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+.sortIconActive {
+  opacity: 1;
+  flex-shrink: 0;
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  font-weight: 500;
+}
+
+.categoryCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionGroup {
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+}

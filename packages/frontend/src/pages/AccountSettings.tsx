@@ -1,14 +1,28 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  PasswordInput,
+  Button,
+  Alert,
+  Card,
+  Switch,
+  Group,
+  Divider,
+} from '@mantine/core';
 import { AuthError, changePassword } from '../services/auth.js';
+import { useAnonymization } from '../hooks/useAnonymization.js';
 
 export function AccountSettings() {
   const { t } = useTranslation();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [success, setSuccess] = useState(false);
+  const { isAnonymized, toggleAnonymization } = useAnonymization();
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: changePassword,
@@ -38,80 +52,76 @@ export function AccountSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-[--color-muted] p-6">
-      <main className="mx-auto max-w-sm">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">{t('accountSettings.title')}</h1>
-          <p className="text-sm text-[--color-muted-foreground]">
-            <Link to="/" className="hover:underline">
-              {t('nav.backToDashboard')}
-            </Link>
-          </p>
-        </header>
+    <Stack gap="lg" maw={480}>
+      <div>
+        <Title order={2}>{t('accountSettings.title')}</Title>
+        <Text size="sm" c="dimmed">
+          {t('accountSettings.subtitle')}
+        </Text>
+      </div>
 
-        <div className="rounded-lg bg-background p-6 shadow-sm">
-          <p className="mb-4 text-sm text-[--color-muted-foreground]">
-            {t('accountSettings.subtitle')}
-          </p>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <Paper withBorder p="lg">
+        <form onSubmit={handleSubmit}>
+          <Stack gap="md">
             {errorMessage() && (
-              <p
-                role="alert"
-                className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-              >
+              <Alert role="alert" color="red">
                 {errorMessage()}
-              </p>
+              </Alert>
             )}
             {success && !error && (
-              <p
-                role="status"
-                className="rounded border border-green-200 bg-green-50 p-3 text-sm text-green-700"
-              >
+              <Alert role="status" color="green">
                 {t('accountSettings.success')}
-              </p>
+              </Alert>
             )}
 
-            <div className="flex flex-col gap-1">
-              <label htmlFor="current-password" className="text-sm font-medium">
-                {t('accountSettings.currentPasswordLabel')}
-              </label>
-              <input
-                id="current-password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="rounded border px-3 py-1.5 text-sm"
-              />
-            </div>
+            <PasswordInput
+              id="current-password"
+              label={t('accountSettings.currentPasswordLabel')}
+              autoComplete="current-password"
+              required
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
 
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-password" className="text-sm font-medium">
-                {t('accountSettings.newPasswordLabel')}
-              </label>
-              <input
-                id="new-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="rounded border px-3 py-1.5 text-sm"
-              />
-            </div>
+            <PasswordInput
+              id="new-password"
+              label={t('accountSettings.newPasswordLabel')}
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="rounded bg-[--color-primary] px-3 py-1.5 text-sm font-medium text-[--color-primary-foreground] disabled:opacity-50"
-            >
+            <Button type="submit" loading={isPending} fullWidth>
               {isPending ? t('accountSettings.submitting') : t('accountSettings.submitLabel')}
-            </button>
-          </form>
-        </div>
-      </main>
-    </div>
+            </Button>
+          </Stack>
+        </form>
+      </Paper>
+
+      <Card withBorder>
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <div>
+            <Text fw={500} size="sm">
+              {t('anonymization.anonymizeContract')}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {t('anonymization.anonymizeContractHint')}
+            </Text>
+          </div>
+          <Switch
+            checked={isAnonymized}
+            onChange={toggleAnonymization}
+            aria-label={t('anonymization.toggleAriaLabel')}
+            size="md"
+          />
+        </Group>
+        <Divider my="sm" />
+        <Text size="xs" c="dimmed">
+          {isAnonymized ? t('anonymization.hideReal') : t('anonymization.showReal')}
+        </Text>
+      </Card>
+    </Stack>
   );
 }

@@ -1,55 +1,76 @@
-import { TrendingUp, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card.js';
+import { Paper, Text, Progress, Group, Box } from '@mantine/core';
+import type { CategorySummary } from '@pcm/shared';
 import { useLocaleFormat } from '../hooks/useLocaleFormat.js';
+import classes from './SpendingOverview.module.css';
+
+const SEGMENT_COLORS = ['blue', 'cyan', 'teal'] as const;
 
 interface SpendingOverviewProps {
   totalMonthlySpending: number;
+  contractsByCategory: CategorySummary[];
 }
 
-export function SpendingOverview({ totalMonthlySpending }: SpendingOverviewProps) {
+export function SpendingOverview({
+  totalMonthlySpending,
+  contractsByCategory,
+}: SpendingOverviewProps) {
   const { t } = useTranslation();
   const { formatCurrency } = useLocaleFormat();
 
+  const segments = contractsByCategory.map((cat, i) => ({
+    ...cat,
+    color: SEGMENT_COLORS[i % SEGMENT_COLORS.length],
+    pct: totalMonthlySpending > 0 ? (cat.monthlyTotal / totalMonthlySpending) * 100 : 0,
+  }));
+
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-[--color-muted-foreground]">
-          <span className="flex items-center gap-1">
-            {t('dashboard.monthlySpending')}
-            <span className="group relative inline-flex items-center">
-              <button
-                type="button"
-                aria-label="Monthly spending calculation info"
-                className="inline-flex items-center text-[--color-muted-foreground] hover:text-foreground focus:text-foreground focus:outline-none"
+    <Paper withBorder radius="md" p="md">
+      <Text className={classes.label}>{t('dashboard.monthlySpending')}</Text>
+
+      {totalMonthlySpending === 0 ? (
+        <Text mt="xs" size="sm" c="dimmed">
+          {t('dashboard.noActiveContracts')}
+        </Text>
+      ) : (
+        <Text className={classes.total}>{formatCurrency(totalMonthlySpending)}</Text>
+      )}
+
+      <Text className={classes.description}>{t('dashboard.acrossActiveContracts')}</Text>
+
+      {segments.length > 0 && (
+        <>
+          <Progress.Root size={8} mt="sm">
+            {segments.map((seg) => (
+              <Progress.Section key={seg.category} value={seg.pct} color={seg.color} />
+            ))}
+          </Progress.Root>
+
+          <Box mt="sm">
+            {segments.map((seg) => (
+              <Group
+                key={seg.category}
+                justify="space-between"
+                mt={4}
+                className={classes.segmentRow}
               >
-                <Info className="h-3.5 w-3.5" />
-              </button>
-              <span
-                role="tooltip"
-                className="pointer-events-none absolute left-0 top-full z-50 mt-1 w-64 rounded bg-foreground px-2.5 py-2 text-xs leading-relaxed text-background opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-              >
-                {t('dashboard.monthlySpendingTooltip')}
-              </span>
-            </span>
-          </span>
-        </CardTitle>
-        <TrendingUp className="h-4 w-4 text-[--color-muted-foreground]" />
-      </CardHeader>
-      <CardContent>
-        {totalMonthlySpending === 0 ? (
-          <p className="spending-overview__empty text-sm text-[--color-muted-foreground]">
-            {t('dashboard.noActiveContracts')}
-          </p>
-        ) : (
-          <p className="spending-overview__total text-3xl font-bold tracking-tight">
-            {formatCurrency(totalMonthlySpending)}
-          </p>
-        )}
-        <p className="mt-1 text-xs text-[--color-muted-foreground]">
-          {t('dashboard.acrossActiveContracts')}
-        </p>
-      </CardContent>
-    </Card>
+                <Group gap={6}>
+                  <Box
+                    w={12}
+                    h={12}
+                    style={{
+                      borderRadius: 2,
+                      backgroundColor: `var(--mantine-color-${seg.color}-6)`,
+                    }}
+                  />
+                  <Text className={classes.segmentLabel}>{seg.label}</Text>
+                </Group>
+                <Text className={classes.segmentAmount}>{formatCurrency(seg.monthlyTotal)}</Text>
+              </Group>
+            ))}
+          </Box>
+        </>
+      )}
+    </Paper>
   );
 }

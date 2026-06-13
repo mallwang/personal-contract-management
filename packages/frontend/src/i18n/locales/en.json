@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "contracts": "Contracts",
+    "accountSettings": "Account Settings",
     "addContract": "Add Contract",
     "manageContracts": "Manage Contracts",
     "backToDashboard": "← Dashboard",
@@ -9,6 +10,10 @@
     "accounts": "Manage Accounts",
     "myAccount": "My Account",
     "backToAccounts": "← Accounts"
+  },
+  "settings": {
+    "darkMode": "Switch to dark mode",
+    "lightMode": "Switch to light mode"
   },
   "common": {
     "loading": "Loading…",
@@ -189,7 +194,7 @@
     "statusArchived": "Archived",
     "archiveButton": "Archive",
     "reactivateButton": "Reactivate",
-    "makeAdminButton": "Make administrator",
+    "makeAdminButton": "Make admin",
     "makeMemberButton": "Make member",
     "loadError": "Failed to load accounts.",
     "actionError": "The action could not be completed.",

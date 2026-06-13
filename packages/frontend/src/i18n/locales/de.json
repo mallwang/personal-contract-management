@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "contracts": "Verträge",
+    "accountSettings": "Kontoeinstellungen",
     "addContract": "Vertrag hinzufügen",
     "manageContracts": "Verträge verwalten",
     "backToDashboard": "← Dashboard",
@@ -9,6 +10,10 @@
     "accounts": "Konten verwalten",
     "myAccount": "Mein Konto",
     "backToAccounts": "← Konten"
+  },
+  "settings": {
+    "darkMode": "Dunkelmodus aktivieren",
+    "lightMode": "Hellmodus aktivieren"
   },
   "common": {
     "loading": "Laden…",

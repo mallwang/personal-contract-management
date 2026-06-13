@@ -1,0 +1,27 @@
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  border: 2px dashed var(--mantine-color-gray-4);
+  border-radius: var(--mantine-radius-md);
+  cursor: pointer;
+  transition: background-color 100ms;
+}
+
+.dropZone:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

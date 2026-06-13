@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { IconChevronUp, IconChevronDown, IconSelector } from '@tabler/icons-react';
+import { Table, Text, Group, Anchor, Button, Center } from '@mantine/core';
 import type { ContractData } from '@pcm/shared';
 import { useLocaleFormat } from '../hooks/useLocaleFormat.js';
 import { CategoryIcon } from './CategoryIcon.js';
 import { ProviderLogo } from './ProviderLogo.js';
+import classes from './ContractTable.module.css';
 
 type SortColumn = 'name' | 'category' | 'amount' | 'status' | 'endDate';
 type SortDirection = 'asc' | 'desc';
@@ -20,6 +22,27 @@ interface ContractTableProps {
   onDelete: (id: string) => void;
   isAnonymized?: boolean;
   getDisplayName?: (contract: ContractData) => string;
+}
+
+function SortIcon({ col, sortState }: { col: SortColumn; sortState: SortState }) {
+  if (sortState.column === col) {
+    return sortState.direction === 'asc' ? (
+      <IconChevronUp
+        role="img"
+        aria-label="Sorted ascending"
+        size={14}
+        className={classes.sortIconActive}
+      />
+    ) : (
+      <IconChevronDown
+        role="img"
+        aria-label="Sorted descending"
+        size={14}
+        className={classes.sortIconActive}
+      />
+    );
+  }
+  return <IconSelector role="img" aria-label="Sort" size={14} className={classes.sortIcon} />;
 }
 
 export function ContractTable({
@@ -60,27 +83,6 @@ export function ContractTable({
     });
   }
 
-  function SortIcon({ col }: { col: SortColumn }) {
-    if (sortState.column === col) {
-      return sortState.direction === 'asc' ? (
-        <ChevronUp role="img" aria-label="Sorted ascending" className="inline-block ml-1 h-3 w-3" />
-      ) : (
-        <ChevronDown
-          role="img"
-          aria-label="Sorted descending"
-          className="inline-block ml-1 h-3 w-3"
-        />
-      );
-    }
-    return (
-      <ChevronsUpDown
-        role="img"
-        aria-label="Sort"
-        className="inline-block ml-1 h-3 w-3 opacity-40"
-      />
-    );
-  }
-
   const [displayAnonymized, setDisplayAnonymized] = useState(isAnonymized);
   const [isFlipping, setIsFlipping] = useState(false);
   const prevAnonymized = useRef(isAnonymized);
@@ -112,125 +114,121 @@ export function ContractTable({
 
   if (contracts.length === 0) {
     return (
-      <p className="py-8 text-center text-[--color-muted-foreground]">
-        {t('contractList.noContracts')}
-      </p>
+      <Center py="xl">
+        <Text c="dimmed">{t('contractList.noContracts')}</Text>
+      </Center>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-[--color-muted-foreground]">
-            <th
-              className="py-2 pr-4 font-medium cursor-pointer select-none"
-              onClick={() => handleSort('name')}
-            >
-              {t('contractList.nameColumn')}
-              <SortIcon col="name" />
-            </th>
-            <th
-              className="py-2 pr-4 font-medium cursor-pointer select-none"
-              onClick={() => handleSort('category')}
-            >
-              {t('contractList.categoryColumn')}
-              <SortIcon col="category" />
-            </th>
-            <th
-              className="py-2 pr-4 font-medium text-right cursor-pointer select-none"
-              onClick={() => handleSort('amount')}
-            >
-              {t('contractList.amountColumn')}
-              <SortIcon col="amount" />
-            </th>
-            <th
-              className="py-2 pr-4 font-medium cursor-pointer select-none"
-              onClick={() => handleSort('status')}
-            >
-              {t('contractList.statusColumn')}
-              <SortIcon col="status" />
-            </th>
-            <th
-              className="py-2 pr-4 font-medium cursor-pointer select-none"
-              onClick={() => handleSort('endDate')}
-            >
-              {t('contractList.endDateColumn')}
-              <SortIcon col="endDate" />
-            </th>
-            <th className="py-2 font-medium">{t('contractList.actionsColumn')}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Table.ScrollContainer minWidth={600}>
+      <Table stickyHeader withTableBorder withColumnBorders={false} highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th className={classes.th} onClick={() => handleSort('name')}>
+              <div className={classes.thInner}>
+                {t('contractList.nameColumn')}
+                <SortIcon col="name" sortState={sortState} />
+              </div>
+            </Table.Th>
+            <Table.Th className={classes.th} onClick={() => handleSort('category')}>
+              <div className={classes.thInner}>
+                {t('contractList.categoryColumn')}
+                <SortIcon col="category" sortState={sortState} />
+              </div>
+            </Table.Th>
+            <Table.Th className={classes.th} onClick={() => handleSort('amount')}>
+              <div className={classes.thInner}>
+                {t('contractList.amountColumn')}
+                <SortIcon col="amount" sortState={sortState} />
+              </div>
+            </Table.Th>
+            <Table.Th className={classes.th} onClick={() => handleSort('status')}>
+              <div className={classes.thInner}>
+                {t('contractList.statusColumn')}
+                <SortIcon col="status" sortState={sortState} />
+              </div>
+            </Table.Th>
+            <Table.Th className={classes.th} onClick={() => handleSort('endDate')}>
+              <div className={classes.thInner}>
+                {t('contractList.endDateColumn')}
+                <SortIcon col="endDate" sortState={sortState} />
+              </div>
+            </Table.Th>
+            <Table.Th className={classes.thActions}>{t('contractList.actionsColumn')}</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
           {sortedContracts.map((contract) => (
-            <tr key={contract.id} className="border-b last:border-0">
-              <td className="py-2 pr-4 font-medium">
-                <span className="flex items-center gap-2">
+            <Table.Tr key={contract.id}>
+              <Table.Td>
+                <div className={`${classes.nameCell}${isFlipping ? ' animate-name-flip' : ''}`}>
                   <ProviderLogo
                     name={contract.name}
                     isAnonymized={displayAnonymized || contract.anonymize}
                     size={20}
                   />
-                  <span className={isFlipping ? 'animate-name-flip' : undefined}>
-                    {resolveName(contract)}
-                  </span>
-                </span>
-              </td>
-              <td className="py-2 pr-4">
-                <span className="flex items-center gap-1.5">
-                  <CategoryIcon
-                    category={contract.category}
-                    className="h-4 w-4 shrink-0 text-[--color-muted-foreground]"
-                  />
+                  {resolveName(contract)}
+                </div>
+              </Table.Td>
+              <Table.Td>
+                <div className={classes.categoryCell}>
+                  <CategoryIcon category={contract.category} size={16} />
                   {t(`category.${contract.category}`)}
-                </span>
-              </td>
-              <td className="py-2 pr-4 text-right">
+                </div>
+              </Table.Td>
+              <Table.Td>
                 {formatCurrency(contract.amount)}
                 {' / '}
                 {t(`billingInterval.${contract.billingInterval}`)}
-              </td>
-              <td className="py-2 pr-4">{t(`status.${contract.status}`)}</td>
-              <td className="py-2 pr-4">
+              </Table.Td>
+              <Table.Td>{t(`status.${contract.status}`)}</Table.Td>
+              <Table.Td>
                 {contract.endDate ? formatDate(contract.endDate) : t('common.noData')}
-              </td>
-              <td className="py-2">
+              </Table.Td>
+              <Table.Td>
                 {pendingDeleteId === contract.id ? (
-                  <span className="inline-flex gap-2">
-                    <button
+                  <Group gap="xs">
+                    <Button
+                      size="compact-sm"
+                      color="red"
+                      variant="filled"
                       onClick={() => {
                         onDelete(contract.id);
                         setPendingDeleteId(null);
                       }}
-                      className="text-red-600 hover:underline"
                     >
                       {t('common.confirm')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      size="compact-sm"
+                      variant="subtle"
+                      color="gray"
                       onClick={() => setPendingDeleteId(null)}
-                      className="text-[--color-muted-foreground] hover:underline"
                     >
                       {t('common.cancel')}
-                    </button>
-                  </span>
+                    </Button>
+                  </Group>
                 ) : (
-                  <span className="inline-flex gap-3">
-                    <Link to={`/contracts/${contract.id}/edit`} className="hover:underline">
+                  <Group gap="xs">
+                    <Anchor component={Link} to={`/contracts/${contract.id}/edit`} size="sm">
                       {t('common.edit')}
-                    </Link>
-                    <button
+                    </Anchor>
+                    <Button
+                      size="compact-sm"
+                      variant="subtle"
+                      color="red"
                       onClick={() => setPendingDeleteId(contract.id)}
-                      className="text-red-600 hover:underline"
                     >
                       {t('common.delete')}
-                    </button>
-                  </span>
+                    </Button>
+                  </Group>
                 )}
-              </td>
-            </tr>
+              </Table.Td>
+            </Table.Tr>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   );
 }

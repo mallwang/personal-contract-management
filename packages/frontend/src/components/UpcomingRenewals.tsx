@@ -1,25 +1,25 @@
 import { useTranslation } from 'react-i18next';
 import type { UpcomingRenewal } from '@pcm/shared';
 import { CalendarClock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card.js';
-import { Badge } from './ui/badge.js';
+import { Paper, Group, Title, Text, Badge, Stack } from '@mantine/core';
 import { useLocaleFormat } from '../hooks/useLocaleFormat.js';
 import { useAnonymization } from '../hooks/useAnonymization.js';
 import { getFantasyName, FANTASY_NAMES } from '../data/fantasyNames.js';
+import classes from './UpcomingRenewals.module.css';
 
 interface UpcomingRenewalsProps {
   upcomingRenewals: UpcomingRenewal[];
 }
 
-function urgencyVariant(days: number): 'destructive' | 'warning' | 'secondary' {
-  if (days < 0) return 'destructive';
-  if (days <= 7) return 'warning';
-  return 'secondary';
+function urgencyColor(days: number): string {
+  if (days < 0) return 'red';
+  if (days <= 7) return 'orange';
+  return 'gray';
 }
 
 function UrgencyBadge({ days }: { days: number }) {
   const { t } = useTranslation();
-  const variant = urgencyVariant(days);
+  const color = urgencyColor(days);
   let label: string;
   if (days < 0) {
     label = t('dashboard.daysOverdue', { count: Math.abs(days) });
@@ -29,7 +29,7 @@ function UrgencyBadge({ days }: { days: number }) {
     label = t('dashboard.daysRemaining', { count: days });
   }
   return (
-    <Badge variant={variant} data-testid="urgency-badge">
+    <Badge color={color} size="sm" data-testid="urgency-badge">
       {label}
     </Badge>
   );
@@ -48,46 +48,42 @@ export function UpcomingRenewals({ upcomingRenewals }: UpcomingRenewalsProps) {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between pb-2">
-        <CardTitle>{t('dashboard.upcomingRenewals')}</CardTitle>
-        <CalendarClock className="h-4 w-4 text-[--color-muted-foreground]" />
-      </CardHeader>
-      <CardContent>
-        {upcomingRenewals.length === 0 ? (
-          <p className="upcoming-renewals__empty text-sm text-[--color-muted-foreground]">
-            {t('dashboard.noRenewals')}
-          </p>
-        ) : (
-          <ul className="upcoming-renewals__list divide-y divide-[--color-border]">
-            {upcomingRenewals.map((renewal) => (
-              <li
-                key={renewal.id}
-                data-overdue={renewal.daysUntilCancellationDeadline < 0 ? 'true' : 'false'}
-                className="upcoming-renewals__item flex items-center justify-between py-3 first:pt-0 last:pb-0"
-              >
-                <div className="flex flex-col gap-0.5">
-                  <span className="upcoming-renewals__name font-medium">
-                    {resolveName(renewal)}
-                  </span>
-                  <span className="upcoming-renewals__category text-xs text-[--color-muted-foreground]">
-                    {t(`category.${renewal.category}`)}
-                  </span>
-                  <span className="upcoming-renewals__cancel-by-label text-xs text-[--color-muted-foreground]">
-                    {t('dashboard.cancelBy')}: {formatDate(renewal.cancellationDeadline)}
-                  </span>
-                  <span className="upcoming-renewals__ends-on-label text-xs text-[--color-muted-foreground]">
-                    {t('dashboard.endsOn')}: {formatDate(renewal.endDate)}
-                  </span>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <UrgencyBadge days={renewal.daysUntilCancellationDeadline} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+    <Paper withBorder radius="md" p="md">
+      <Group justify="space-between" mb="sm">
+        <Title order={4}>{t('dashboard.upcomingRenewals')}</Title>
+        <CalendarClock size={16} color="var(--mantine-color-dimmed)" />
+      </Group>
+      {upcomingRenewals.length === 0 ? (
+        <Text size="sm" c="dimmed" className="upcoming-renewals__empty">
+          {t('dashboard.noRenewals')}
+        </Text>
+      ) : (
+        <Stack gap={0} className="upcoming-renewals__list">
+          {upcomingRenewals.map((renewal) => (
+            <div
+              key={renewal.id}
+              data-overdue={renewal.daysUntilCancellationDeadline < 0 ? 'true' : 'false'}
+              className={`${classes.item} upcoming-renewals__item`}
+            >
+              <Stack gap={2}>
+                <Text size="sm" fw={500} className="upcoming-renewals__name">
+                  {resolveName(renewal)}
+                </Text>
+                <Text size="xs" c="dimmed" className="upcoming-renewals__category">
+                  {t(`category.${renewal.category}`)}
+                </Text>
+                <Text size="xs" c="dimmed" className="upcoming-renewals__cancel-by-label">
+                  {t('dashboard.cancelBy')}: {formatDate(renewal.cancellationDeadline)}
+                </Text>
+                <Text size="xs" c="dimmed" className="upcoming-renewals__ends-on-label">
+                  {t('dashboard.endsOn')}: {formatDate(renewal.endDate)}
+                </Text>
+              </Stack>
+              <UrgencyBadge days={renewal.daysUntilCancellationDeadline} />
+            </div>
+          ))}
+        </Stack>
+      )}
+    </Paper>
   );
 }

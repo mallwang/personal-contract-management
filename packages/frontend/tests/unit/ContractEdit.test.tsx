@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MantineProvider } from '@mantine/core';
 import { createElement } from 'react';
 import type { ReactNode } from 'react';
 import { ContractEdit } from '../../src/pages/ContractEdit.js';
@@ -39,19 +40,23 @@ function createWrapper(initialPath: string) {
   });
   return ({ children }: { children: ReactNode }) =>
     createElement(
-      QueryClientProvider,
-      { client: queryClient },
+      MantineProvider,
+      {},
       createElement(
-        MemoryRouter,
-        { initialEntries: [initialPath] },
+        QueryClientProvider,
+        { client: queryClient },
         createElement(
-          Routes,
-          null,
-          createElement(Route, { path: '/contracts/:id/edit', element: children }),
-          createElement(Route, {
-            path: '/contracts',
-            element: createElement('div', null, 'contract list'),
-          }),
+          MemoryRouter,
+          { initialEntries: [initialPath] },
+          createElement(
+            Routes,
+            null,
+            createElement(Route, { path: '/contracts/:id/edit', element: children }),
+            createElement(Route, {
+              path: '/contracts',
+              element: createElement('div', null, 'contract list'),
+            }),
+          ),
         ),
       ),
     );
@@ -85,9 +90,13 @@ describe('ContractEdit', () => {
     });
 
     await waitFor(() => expect(screen.getByDisplayValue('Netflix')).toBeInTheDocument());
-    expect(screen.getByDisplayValue('15.99')).toBeInTheDocument();
-    const intervalSelect = screen.getByLabelText(/billing interval/i) as HTMLSelectElement;
-    expect(intervalSelect.value).toBe('MONTHLY');
+    // NumberInput with prefix="€" shows "€15.99"
+    expect(screen.getByLabelText(/^amount/i)).toHaveDisplayValue(/15\.99/);
+    // Mantine Select shows label ("Monthly") not value ("MONTHLY")
+    const billingInput = screen
+      .getAllByRole('textbox', { name: /billing interval/i })
+      .find((el) => el.getAttribute('aria-haspopup') !== null)!;
+    expect(billingInput).toHaveDisplayValue(/monthly/i);
   });
 
   it('shows not found message when the contract ID does not exist in the list', async () => {
@@ -140,9 +149,13 @@ describe('ContractEdit', () => {
     expect(screen.getByDisplayValue('2024-01-15')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test notes')).toBeInTheDocument();
     expect(screen.getByDisplayValue('https://example.com')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('30')).toBeInTheDocument();
-    const unitSelect = screen.getByLabelText(/cancellation unit/i) as HTMLSelectElement;
-    expect(unitSelect.value).toBe('DAYS');
+    // Cancellation period NumberInput (no prefix) shows '30'
+    expect(screen.getByLabelText(/cancellation period/i)).toHaveDisplayValue('30');
+    // Mantine Select for unit shows label ("Days") not value ("DAYS")
+    const unitInput = screen
+      .getAllByRole('textbox', { name: /cancellation unit/i })
+      .find((el) => el.getAttribute('aria-haspopup') !== null)!;
+    expect(unitInput).toHaveDisplayValue(/days/i);
   });
 
   it('navigates to /contracts when Cancel is clicked', async () => {

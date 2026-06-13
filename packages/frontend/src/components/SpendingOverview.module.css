@@ -1,0 +1,41 @@
+.root {
+  padding: var(--mantine-spacing-md);
+}
+
+.label {
+  font-size: var(--mantine-font-size-xs);
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.total {
+  font-size: calc(1.6 * var(--mantine-font-size-xl));
+  font-weight: 700;
+  line-height: 1;
+  margin-top: var(--mantine-spacing-xs);
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.description {
+  font-size: var(--mantine-font-size-xs);
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  margin-top: calc(var(--mantine-spacing-xs) / 2);
+  margin-bottom: var(--mantine-spacing-lg);
+}
+
+.segmentRow {
+  margin-top: var(--mantine-spacing-sm);
+}
+
+.segmentLabel {
+  font-size: var(--mantine-font-size-xs);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
+.segmentAmount {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}

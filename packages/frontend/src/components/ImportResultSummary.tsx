@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Stack, Alert, Text, List, Button, Code } from '@mantine/core';
 import type { ImportResult } from '../utils/columnMapping.js';
 
 interface ImportResultSummaryProps {
@@ -11,55 +12,51 @@ export function ImportResultSummary({ result, onReset }: ImportResultSummaryProp
   const allOk = result.failed.length === 0;
 
   return (
-    <div className="space-y-4">
-      <div
-        className={`rounded-lg border p-4 ${allOk ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}
-      >
-        <p className="font-medium">
+    <Stack gap="md">
+      <Alert color={allOk ? 'green' : 'orange'}>
+        <Text fw={500} mb={4}>
           {t('import.result.summary', {
             total: result.total,
             created: result.created,
             failed: result.failed.length,
           })}
-        </p>
-        <ul className="mt-1 text-sm">
-          <li>
+        </Text>
+        <List size="sm">
+          <List.Item>
             {t('import.result.total')}: <strong>{result.total}</strong>
-          </li>
-          <li className="text-green-700">
+          </List.Item>
+          <List.Item c="green">
             {t('import.result.created')}: <strong>{result.created}</strong>
-          </li>
+          </List.Item>
           {result.failed.length > 0 && (
-            <li className="text-red-700">
+            <List.Item c="red">
               {t('import.result.failed')}: <strong>{result.failed.length}</strong>
-            </li>
+            </List.Item>
           )}
-        </ul>
-      </div>
+        </List>
+      </Alert>
 
       {result.failed.length > 0 && (
         <div>
-          <h3 className="mb-2 text-sm font-medium text-red-700">{t('import.result.errors')}</h3>
-          <ul className="space-y-1 text-sm">
+          <Text size="sm" fw={500} c="red" mb="xs">
+            {t('import.result.errors')}
+          </Text>
+          <Stack gap={4}>
             {result.failed.map(({ rowIndex, message }) => (
-              <li key={rowIndex} className="rounded border border-red-200 bg-red-50 px-3 py-1.5">
-                <span className="font-mono font-medium">
+              <Alert key={rowIndex} color="red" p="xs">
+                <Code>
                   {t('import.result.row')} {rowIndex}:
-                </span>{' '}
+                </Code>{' '}
                 {message}
-              </li>
+              </Alert>
             ))}
-          </ul>
+          </Stack>
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={onReset}
-        className="rounded border border-foreground/20 px-4 py-2 text-sm font-medium hover:bg-foreground/5"
-      >
+      <Button variant="default" onClick={onReset}>
         {t('import.result.importAnother')}
-      </button>
-    </div>
+      </Button>
+    </Stack>
   );
 }

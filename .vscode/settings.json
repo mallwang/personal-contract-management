@@ -1,5 +1,12 @@
 {
     "chat.notifyWindowOnConfirmation": "always",
     "chat.notifyWindowOnResponseReceived": "always",
-    "git.showPushSuccessNotification": true
+    "git.showPushSuccessNotification": true,
+    "cssVariables.lookupFiles": [
+        "**/*.css",
+        "**/*.scss",
+        "**/*.sass",
+        "**/*.less",
+        "node_modules/@mantine/core/styles.css"
+    ]
 }

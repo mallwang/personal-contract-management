@@ -1,0 +1,60 @@
+.navbar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--mantine-color-default-border);
+}
+
+.navbarMain {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.section {
+  padding: var(--mantine-spacing-xs) 0;
+}
+
+.sectionLabel {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mantine-color-dimmed);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-sm);
+  margin: 2px var(--mantine-spacing-xs);
+  font-weight: 500;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+
+.link:hover {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-dark-0));
+}
+
+.linkActive {
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-dark-0));
+}
+
+.userSection {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding: var(--mantine-spacing-md);
+}
+
+.settingsSection {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding: var(--mantine-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}

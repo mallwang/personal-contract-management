@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Table, NativeSelect, Code } from '@mantine/core';
 import type { ColumnMapping, TargetField } from '../utils/columnMapping.js';
 import { REQUIRED_TARGET_FIELDS } from '../utils/columnMapping.js';
 
@@ -37,14 +38,14 @@ export function ColumnMappingTable({ mappings, onChange }: ColumnMappingTablePro
   }
 
   return (
-    <table className="w-full border-collapse text-sm">
-      <thead>
-        <tr className="border-b border-foreground/10 text-left">
-          <th className="py-2 pr-4 font-medium">{t('import.columnHeader.source')}</th>
-          <th className="py-2 font-medium">{t('import.columnHeader.target')}</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table withTableBorder withColumnBorders>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>{t('import.columnHeader.source')}</Table.Th>
+          <Table.Th>{t('import.columnHeader.target')}</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
         {mappings.map((mapping, i) => {
           const isRequired =
             mapping.targetField !== null &&
@@ -54,22 +55,25 @@ export function ColumnMappingTable({ mappings, onChange }: ColumnMappingTablePro
             REQUIRED_TARGET_FIELDS.some((f) => !mappings.some((m) => m.targetField === f));
 
           return (
-            <tr key={mapping.sourceColumn} className="border-b border-foreground/5">
-              <td className="py-2 pr-4 font-mono text-xs">{mapping.sourceColumn}</td>
-              <td className="py-2">
-                <select
-                  className={`w-full rounded border px-2 py-1 text-sm ${
-                    mapping.targetField === null
-                      ? isMissing
-                        ? 'border-red-400 bg-red-50 text-red-800'
-                        : 'border-foreground/20 text-[--color-muted-foreground]'
-                      : isRequired
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-foreground/20'
-                  }`}
+            <Table.Tr key={mapping.sourceColumn}>
+              <Table.Td>
+                <Code>{mapping.sourceColumn}</Code>
+              </Table.Td>
+              <Table.Td>
+                <NativeSelect
+                  size="xs"
                   value={mapping.targetField ?? SKIP_VALUE}
                   onChange={(e) => handleChange(i, e.target.value)}
                   aria-label={`${t('import.mappingSelectLabel')} ${mapping.sourceColumn}`}
+                  styles={{
+                    input: {
+                      borderColor: isMissing
+                        ? 'var(--mantine-color-red-6)'
+                        : isRequired
+                          ? 'var(--mantine-color-blue-6)'
+                          : undefined,
+                    },
+                  }}
                 >
                   <option value={SKIP_VALUE}>{t('import.skip')}</option>
                   <option value="" disabled>
@@ -81,12 +85,12 @@ export function ColumnMappingTable({ mappings, onChange }: ColumnMappingTablePro
                       {REQUIRED_TARGET_FIELDS.includes(field) ? ' *' : ''}
                     </option>
                   ))}
-                </select>
-              </td>
-            </tr>
+                </NativeSelect>
+              </Table.Td>
+            </Table.Tr>
           );
         })}
-      </tbody>
-    </table>
+      </Table.Tbody>
+    </Table>
   );
 }

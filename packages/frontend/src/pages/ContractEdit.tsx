@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Center, Text, Alert, Stack, Title, Paper } from '@mantine/core';
 import { useContracts, useUpdateContract } from '../services/contracts.js';
 import { ContractForm } from '../components/ContractForm.js';
 
@@ -12,17 +13,17 @@ export function ContractEdit() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-muted-foreground]">{t('common.loading')}</p>
-      </div>
+      <Center mih="40vh">
+        <Text c="dimmed">{t('common.loading')}</Text>
+      </Center>
     );
   }
 
   if (isError || !contracts) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600">{t('contractEdit.loadError')}</p>
-      </div>
+      <Center mih="40vh">
+        <Alert color="red">{t('contractEdit.loadError')}</Alert>
+      </Center>
     );
   }
 
@@ -30,50 +31,50 @@ export function ContractEdit() {
 
   if (!contract) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-muted-foreground]">{t('contractEdit.notFound')}</p>
-      </div>
+      <Center mih="40vh">
+        <Text c="dimmed">{t('contractEdit.notFound')}</Text>
+      </Center>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[--color-muted] p-6">
-      <main className="mx-auto max-w-lg">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">{t('contractEdit.title')}</h1>
-          <p className="text-sm text-[--color-muted-foreground]">{contract.name}</p>
-        </header>
-        <div className="rounded-lg bg-background p-6 shadow-sm">
-          <ContractForm
-            defaultValues={{
-              name: contract.name,
-              category: contract.category,
-              amount: String(contract.amount),
-              billingInterval: contract.billingInterval,
-              status: contract.status,
-              endDate: contract.endDate ?? '',
-              startDate: contract.startDate ?? '',
-              details: contract.details ?? '',
-              serviceUrl: contract.serviceUrl ?? '',
-              cancellationPeriodValue: contract.cancellationPeriod
-                ? String(contract.cancellationPeriod.value)
-                : '',
-              cancellationPeriodUnit: contract.cancellationPeriod?.unit ?? 'MONTHS',
-              anonymize: contract.anonymize,
-            }}
-            onSubmit={(data) =>
-              updateContract(
-                { id: contract.id, body: data },
-                { onSuccess: () => navigate('/contracts') },
-              )
-            }
-            onCancel={() => navigate('/contracts')}
-            submitLabel={t('contractEdit.saveChanges')}
-            isPending={isPending}
-            error={error instanceof Error ? error.message : null}
-          />
-        </div>
-      </main>
-    </div>
+    <Stack gap="lg" maw={600} mx="auto">
+      <div>
+        <Title order={2}>{t('contractEdit.title')}</Title>
+        <Text size="sm" c="dimmed">
+          {contract.name}
+        </Text>
+      </div>
+      <Paper withBorder radius="md" p="lg">
+        <ContractForm
+          defaultValues={{
+            name: contract.name,
+            category: contract.category,
+            amount: String(contract.amount),
+            billingInterval: contract.billingInterval,
+            status: contract.status,
+            endDate: contract.endDate ?? '',
+            startDate: contract.startDate ?? '',
+            details: contract.details ?? '',
+            serviceUrl: contract.serviceUrl ?? '',
+            cancellationPeriodValue: contract.cancellationPeriod
+              ? String(contract.cancellationPeriod.value)
+              : '',
+            cancellationPeriodUnit: contract.cancellationPeriod?.unit ?? 'MONTHS',
+            anonymize: contract.anonymize,
+          }}
+          onSubmit={(data) =>
+            updateContract(
+              { id: contract.id, body: data },
+              { onSuccess: () => navigate('/contracts') },
+            )
+          }
+          onCancel={() => navigate('/contracts')}
+          submitLabel={t('contractEdit.saveChanges')}
+          isPending={isPending}
+          error={error instanceof Error ? error.message : null}
+        />
+      </Paper>
+    </Stack>
   );
 }

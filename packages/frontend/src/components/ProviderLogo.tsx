@@ -24,30 +24,31 @@ export function ProviderLogo({
 
   const url = logoUrl(name, isAnonymized);
 
-  const sizeStyle: React.CSSProperties = { width: `${size}px`, height: `${size}px` };
+  const sizeStyle: React.CSSProperties = {
+    width: `${size}px`,
+    height: `${size}px`,
+    display: 'inline-flex',
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
 
   if (!url || failed) {
     return (
-      <span
-        style={sizeStyle}
-        className={`inline-flex shrink-0 items-center justify-center ${className ?? ''}`}
-      >
-        <Building2 className="h-full w-full text-[--color-muted-foreground]" />
+      <span style={sizeStyle} className={className}>
+        <Building2 style={{ width: '100%', height: '100%' }} color="var(--mantine-color-dimmed)" />
       </span>
     );
   }
 
   return (
-    <span
-      style={sizeStyle}
-      className={`inline-flex shrink-0 items-center justify-center ${className ?? ''}`}
-    >
+    <span style={sizeStyle} className={className}>
       <img
         src={url}
         alt=""
         role="img"
         onError={() => setFailed(true)}
-        className="h-full w-full object-contain"
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
       />
     </span>
   );

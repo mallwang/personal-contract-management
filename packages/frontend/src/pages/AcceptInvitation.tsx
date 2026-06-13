@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { Center, Paper, Title, Stack, PasswordInput, Button, Alert, Text } from '@mantine/core';
 import { AuthError } from '../services/auth.js';
 import { acceptInvitation } from '../services/invitations.js';
 import { CURRENT_USER_QUERY_KEY } from '../hooks/useAuth.js';
@@ -73,83 +74,62 @@ export function AcceptInvitation() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[--color-muted] p-6">
-      <main className="w-full max-w-sm">
-        <div className="rounded-lg bg-background p-6 shadow-sm">
-          <h1 className="mb-6 text-2xl font-bold tracking-tight">{t('acceptInvitation.title')}</h1>
+    <Center mih="100vh" bg="var(--mantine-color-gray-0)">
+      <Paper withBorder shadow="md" p="xl" w={400} radius="md">
+        <Title order={2} mb="lg" ta="center">
+          {t('acceptInvitation.title')}
+        </Title>
 
-          {success && (
-            <div className="rounded border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-              <p className="font-semibold">{t('acceptInvitation.successTitle')}</p>
-              <p>{t('acceptInvitation.successMessage')}</p>
-            </div>
-          )}
+        {success && (
+          <Alert color="green" mb="md">
+            <Text fw={600}>{t('acceptInvitation.successTitle')}</Text>
+            <Text size="sm">{t('acceptInvitation.successMessage')}</Text>
+          </Alert>
+        )}
 
-          {terminalState && (
-            <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              {terminalMessages[terminalState]}
-            </div>
-          )}
+        {terminalState && (
+          <Alert color="yellow" mb="md">
+            {terminalMessages[terminalState]}
+          </Alert>
+        )}
 
-          {!success && !terminalState && (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {!success && !terminalState && (
+          <form onSubmit={handleSubmit}>
+            <Stack gap="md">
               {genericError && (
-                <p
-                  role="alert"
-                  className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-                >
+                <Alert role="alert" color="red">
                   {genericError}
-                </p>
+                </Alert>
               )}
 
-              <div className="flex flex-col gap-1">
-                <label htmlFor="accept-password" className="text-sm font-medium">
-                  {t('acceptInvitation.passwordLabel')}
-                </label>
-                <input
-                  id="accept-password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="rounded border px-3 py-1.5 text-sm"
-                />
-              </div>
+              <PasswordInput
+                id="accept-password"
+                label={t('acceptInvitation.passwordLabel')}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={validationError}
+              />
 
-              <div className="flex flex-col gap-1">
-                <label htmlFor="accept-confirm" className="text-sm font-medium">
-                  {t('acceptInvitation.confirmPasswordLabel')}
-                </label>
-                <input
-                  id="accept-confirm"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  minLength={8}
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  className="rounded border px-3 py-1.5 text-sm"
-                />
-                {validationError && (
-                  <p role="alert" className="text-sm text-red-600">
-                    {validationError}
-                  </p>
-                )}
-              </div>
+              <PasswordInput
+                id="accept-confirm"
+                label={t('acceptInvitation.confirmPasswordLabel')}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+              />
 
-              <button
-                type="submit"
-                disabled={isPending}
-                className="rounded bg-[--color-primary] px-3 py-1.5 text-sm font-medium text-[--color-primary-foreground] disabled:opacity-50"
-              >
+              <Button type="submit" fullWidth loading={isPending}>
                 {isPending ? t('acceptInvitation.submitting') : t('acceptInvitation.submitLabel')}
-              </button>
-            </form>
-          )}
-        </div>
-      </main>
-    </div>
+              </Button>
+            </Stack>
+          </form>
+        )}
+      </Paper>
+    </Center>
   );
 }

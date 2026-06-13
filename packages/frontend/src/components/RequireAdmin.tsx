@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Center, Text } from '@mantine/core';
 import { useCurrentUser } from '../hooks/useAuth.js';
 
 interface RequireAdminProps {
@@ -13,9 +14,11 @@ export function RequireAdmin({ children }: RequireAdminProps) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[--color-muted] p-6">
-        <p className="text-sm text-[--color-muted-foreground]">{t('common.loading')}</p>
-      </div>
+      <Center mih="100vh">
+        <Text size="sm" c="dimmed">
+          {t('common.loading')}
+        </Text>
+      </Center>
     );
   }
 

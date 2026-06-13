@@ -1,39 +1,46 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MantineProvider } from '@mantine/core';
 import { AnonymizationToggle } from '../../src/components/AnonymizationToggle.js';
 
+function renderToggle(isActive: boolean, onToggle = vi.fn()) {
+  return render(
+    <MantineProvider>
+      <AnonymizationToggle isActive={isActive} onToggle={onToggle} />
+    </MantineProvider>,
+  );
+}
+
 describe('AnonymizationToggle', () => {
-  it('renders a button', () => {
-    render(<AnonymizationToggle isActive={false} onToggle={vi.fn()} />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
+  it('renders a switch', () => {
+    renderToggle(false);
+    expect(screen.getByRole('switch')).toBeInTheDocument();
   });
 
   it('calls onToggle when clicked', async () => {
     const onToggle = vi.fn();
     const user = userEvent.setup();
-    render(<AnonymizationToggle isActive={false} onToggle={onToggle} />);
-    await user.click(screen.getByRole('button'));
+    renderToggle(false, onToggle);
+    await user.click(screen.getByRole('switch'));
     expect(onToggle).toHaveBeenCalledOnce();
   });
 
-  it('has aria-pressed=false when isActive=false', () => {
-    render(<AnonymizationToggle isActive={false} onToggle={vi.fn()} />);
-    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'false');
+  it('is unchecked when isActive=false', () => {
+    renderToggle(false);
+    expect(screen.getByRole('switch')).not.toBeChecked();
   });
 
-  it('has aria-pressed=true when isActive=true', () => {
-    render(<AnonymizationToggle isActive={true} onToggle={vi.fn()} />);
-    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+  it('is checked when isActive=true', () => {
+    renderToggle(true);
+    expect(screen.getByRole('switch')).toBeChecked();
   });
 
-  it('renders different label text when active vs inactive', () => {
-    const { rerender } = render(<AnonymizationToggle isActive={false} onToggle={vi.fn()} />);
-    const inactiveText = screen.getByRole('button').textContent;
-
-    rerender(<AnonymizationToggle isActive={true} onToggle={vi.fn()} />);
-    const activeText = screen.getByRole('button').textContent;
-
-    expect(inactiveText).not.toBe(activeText);
+  it('has an accessible label', () => {
+    renderToggle(false);
+    // Mantine Switch can carry a label via aria-label or visible label text
+    const sw = screen.getByRole('switch');
+    const label = sw.getAttribute('aria-label') ?? sw.getAttribute('aria-labelledby');
+    expect(label).toBeTruthy();
   });
 });

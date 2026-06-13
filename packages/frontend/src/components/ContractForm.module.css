@@ -1,0 +1,30 @@
+.dateGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mantine-spacing-md);
+}
+
+.cancellationRow {
+  display: flex;
+  gap: var(--mantine-spacing-sm);
+  align-items: flex-end;
+}
+
+.cancellationNumber {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.cancellationUnit {
+  flex: 1;
+}
+
+.charCount {
+  font-size: var(--mantine-font-size-xs);
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  text-align: right;
+}
+
+.charCountNearLimit {
+  color: var(--mantine-color-red-6);
+}

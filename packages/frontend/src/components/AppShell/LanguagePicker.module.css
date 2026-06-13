@@ -1,0 +1,12 @@
+.control {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  border: 1px solid var(--mantine-color-default-border);
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+  transition: background-color 100ms ease;
+}
+
+.control:hover {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+}

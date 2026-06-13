@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Center, Text, Stack, Title, Group, Button } from '@mantine/core';
 import { useDashboard } from '../services/api.js';
 import { SpendingOverview } from '../components/SpendingOverview.js';
-import { CategoryBreakdown } from '../components/CategoryBreakdown.js';
 import { UpcomingRenewals } from '../components/UpcomingRenewals.js';
 import { ExpiredContracts } from '../components/ExpiredContracts.js';
 
@@ -12,54 +12,50 @@ export function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-muted-foreground]">{t('common.loading')}</p>
-      </div>
+      <Center mih="60vh">
+        <Text c="dimmed">{t('common.loading')}</Text>
+      </Center>
     );
   }
 
   if (isError || !data) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-destructive]">{t('dashboard.loadError')}</p>
-      </div>
+      <Center mih="60vh">
+        <Text c="red">{t('dashboard.loadError')}</Text>
+      </Center>
     );
   }
 
+  const top3Categories = data.contractsByCategory.slice(0, 3);
+
   return (
-    <div className="min-h-screen bg-[--color-muted] p-6">
-      <main className="dashboard mx-auto max-w-5xl">
-        <header className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t('dashboard.title')}</h1>
-            <p className="text-sm text-[--color-muted-foreground]">{t('dashboard.subtitle')}</p>
-          </div>
-          <Link
-            to="/contracts"
-            className="rounded border px-4 py-2 text-sm font-medium hover:bg-background"
-          >
-            {t('nav.manageContracts')}
-          </Link>
-        </header>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <section aria-label={t('dashboard.monthlySpending')}>
-            <SpendingOverview totalMonthlySpending={data.totalMonthlySpending} />
-          </section>
-
-          <section aria-label={t('dashboard.byCategory')} className="sm:col-span-2">
-            <CategoryBreakdown contractsByCategory={data.contractsByCategory} />
-          </section>
-
-          <section aria-label={t('dashboard.upcomingRenewals')} className="sm:col-span-3">
-            <UpcomingRenewals upcomingRenewals={data.upcomingRenewals} />
-          </section>
-
-          <section aria-label={t('dashboard.expiredContracts')} className="sm:col-span-3">
-            <ExpiredContracts expiredContracts={data.expiredContracts} />
-          </section>
+    <Stack gap="lg">
+      <Group justify="space-between" align="flex-end">
+        <div>
+          <Title order={2}>{t('dashboard.title')}</Title>
+          <Text size="sm" c="dimmed">
+            {t('dashboard.subtitle')}
+          </Text>
         </div>
-      </main>
-    </div>
+        <Button component={Link} to="/contracts" variant="default" size="sm">
+          {t('nav.manageContracts')}
+        </Button>
+      </Group>
+
+      <section aria-label={t('dashboard.monthlySpending')}>
+        <SpendingOverview
+          totalMonthlySpending={data.totalMonthlySpending}
+          contractsByCategory={top3Categories}
+        />
+      </section>
+
+      <section aria-label={t('dashboard.upcomingRenewals')}>
+        <UpcomingRenewals upcomingRenewals={data.upcomingRenewals} />
+      </section>
+
+      <section aria-label={t('dashboard.expiredContracts')}>
+        <ExpiredContracts expiredContracts={data.expiredContracts} />
+      </section>
+    </Stack>
   );
 }

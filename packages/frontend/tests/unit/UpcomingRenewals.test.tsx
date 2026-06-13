@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
 import { UpcomingRenewals } from '../../src/components/UpcomingRenewals.js';
 import type { UpcomingRenewal } from '@pcm/shared';
 
@@ -38,39 +39,67 @@ const overdueData: UpcomingRenewal[] = [
 
 describe('UpcomingRenewals', () => {
   it('renders a heading for the section', () => {
-    render(<UpcomingRenewals upcomingRenewals={sampleData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={sampleData} />
+      </MantineProvider>,
+    );
     expect(screen.getByRole('heading', { name: /upcoming renewals/i })).toBeInTheDocument();
   });
 
   it('renders the contract name for each renewal', () => {
-    render(<UpcomingRenewals upcomingRenewals={sampleData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={sampleData} />
+      </MantineProvider>,
+    );
     expect(screen.getByText('Netflix')).toBeInTheDocument();
     expect(screen.getByText('Adobe CC')).toBeInTheDocument();
   });
 
   it('renders days remaining badge for contracts with positive daysUntilCancellationDeadline', () => {
-    render(<UpcomingRenewals upcomingRenewals={sampleData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={sampleData} />
+      </MantineProvider>,
+    );
     expect(screen.getByText(/6 days remaining/i)).toBeInTheDocument();
     expect(screen.getByText(/19 days remaining/i)).toBeInTheDocument();
   });
 
   it('renders an overdue badge for contracts with negative daysUntilCancellationDeadline', () => {
-    render(<UpcomingRenewals upcomingRenewals={overdueData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={overdueData} />
+      </MantineProvider>,
+    );
     expect(screen.getByText(/36 days overdue/i)).toBeInTheDocument();
   });
 
   it('renders "Cancel by" label for each contract', () => {
-    render(<UpcomingRenewals upcomingRenewals={sampleData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={sampleData} />
+      </MantineProvider>,
+    );
     expect(screen.getAllByText(/cancel by/i).length).toBeGreaterThan(0);
   });
 
   it('renders "Ends" label for each contract', () => {
-    render(<UpcomingRenewals upcomingRenewals={sampleData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={sampleData} />
+      </MantineProvider>,
+    );
     expect(screen.getAllByText(/ends/i).length).toBeGreaterThan(0);
   });
 
   it('renders the cancellation deadline date formatted for the active locale', () => {
-    render(<UpcomingRenewals upcomingRenewals={sampleData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={sampleData} />
+      </MantineProvider>,
+    );
     const formatted = new Intl.DateTimeFormat('en', {
       day: '2-digit',
       month: '2-digit',
@@ -80,7 +109,11 @@ describe('UpcomingRenewals', () => {
   });
 
   it('renders empty-state message when array is empty', () => {
-    render(<UpcomingRenewals upcomingRenewals={[]} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={[]} />
+      </MantineProvider>,
+    );
     expect(screen.getByText(/no renewals due soon/i)).toBeInTheDocument();
   });
 
@@ -96,7 +129,11 @@ describe('UpcomingRenewals', () => {
         anonymize: true,
       },
     ];
-    render(<UpcomingRenewals upcomingRenewals={anonymizedData} />);
+    render(
+      <MantineProvider>
+        <UpcomingRenewals upcomingRenewals={anonymizedData} />
+      </MantineProvider>,
+    );
     expect(screen.queryByText('Netflix')).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import classes from './LanguageSwitcher.module.css';
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -17,18 +18,15 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div className="flex items-center gap-1" role="group" aria-label="Language">
+    <div className={classes.root} role="group" aria-label="Language">
       {LANGUAGES.map(({ code, label }) => (
         <button
           key={code}
+          type="button"
           onClick={() => handleSelect(code)}
           aria-label={label}
           aria-pressed={current === code}
-          className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
-            current === code
-              ? 'bg-foreground text-background'
-              : 'text-[--color-muted-foreground] hover:text-foreground'
-          }`}
+          className={`${classes.langButton} ${current === code ? classes.langButtonActive : ''}`}
         >
           {label}
         </button>

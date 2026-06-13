@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Upload } from 'lucide-react';
+import { Stack, Title, Text, Paper, Alert, Button, Group, Center, Anchor } from '@mantine/core';
 import type { ColumnMapping, ImportResult } from '../utils/columnMapping.js';
 import { inferMappings, isMappingComplete } from '../utils/columnMapping.js';
 import { parseJsonFile, parseExcelFile, runImport } from '../services/importParsing.js';
@@ -9,6 +10,7 @@ import type { ParsedImportFile } from '../services/importParsing.js';
 import { ColumnMappingTable } from '../components/ColumnMappingTable.js';
 import { ImportResultSummary } from '../components/ImportResultSummary.js';
 import { useCreateContract } from '../services/contracts.js';
+import classes from './ContractImport.module.css';
 
 type Stage = 'idle' | 'parsing' | 'mapping' | 'importing' | 'done';
 
@@ -65,95 +67,87 @@ export function ContractImport() {
   const canConfirm = stage === 'mapping' && isMappingComplete(mappings);
 
   return (
-    <div className="min-h-screen bg-[--color-muted] p-6">
-      <main className="mx-auto max-w-3xl">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">{t('import.title')}</h1>
-          <p className="text-sm text-[--color-muted-foreground]">
-            <Link to="/contracts" className="hover:underline">
-              {t('nav.backToContracts')}
-            </Link>
-          </p>
-        </header>
+    <Stack gap="lg" maw={900} mx="auto">
+      <div>
+        <Title order={2}>{t('import.title')}</Title>
+        <Anchor component={Link} to="/contracts" size="sm">
+          {t('nav.backToContracts')}
+        </Anchor>
+      </div>
 
-        {stage === 'idle' && (
-          <div className="rounded-lg bg-background p-6 shadow-sm">
-            {error && (
-              <p className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {error}
-              </p>
-            )}
-            <label className="flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-foreground/20 p-8 hover:bg-foreground/5">
-              <Upload size={32} className="text-[--color-muted-foreground]" />
-              <span className="text-sm font-medium">{t('import.uploadLabel')}</span>
-              <span className="text-xs text-[--color-muted-foreground]">
-                {t('import.uploadHint')}
-              </span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,.xlsx"
-                className="sr-only"
-                aria-label={t('import.fileInputLabel')}
-                onChange={handleFileChange}
-              />
-            </label>
-          </div>
-        )}
+      {stage === 'idle' && (
+        <Paper withBorder radius="md" p="lg">
+          {error && (
+            <Alert color="red" mb="md">
+              {error}
+            </Alert>
+          )}
+          <label className={classes.dropZone}>
+            <Upload size={32} color="var(--mantine-color-dimmed)" />
+            <Text size="sm" fw={500}>
+              {t('import.uploadLabel')}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {t('import.uploadHint')}
+            </Text>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.xlsx"
+              className={classes.fileInput}
+              aria-label={t('import.fileInputLabel')}
+              onChange={handleFileChange}
+            />
+          </label>
+        </Paper>
+      )}
 
-        {stage === 'parsing' && (
-          <p className="py-8 text-center text-[--color-muted-foreground]">{t('common.loading')}</p>
-        )}
+      {stage === 'parsing' && (
+        <Center py="xl">
+          <Text c="dimmed">{t('common.loading')}</Text>
+        </Center>
+      )}
 
-        {stage === 'mapping' && parsed && (
-          <div className="rounded-lg bg-background p-6 shadow-sm">
+      {stage === 'mapping' && parsed && (
+        <Paper withBorder radius="md" p="lg">
+          <Stack gap="md">
             {parsed.warnings.map((w) => (
-              <p
-                key={w}
-                className="mb-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
-              >
+              <Alert key={w} color="yellow">
                 {w}
-              </p>
+              </Alert>
             ))}
-            <p className="mb-4 text-sm text-[--color-muted-foreground]">
+            <Text size="sm" c="dimmed">
               {t('import.mappingHint', { count: parsed.rows.length })}
-            </p>
+            </Text>
             <ColumnMappingTable mappings={mappings} onChange={setMappings} />
-            <div className="mt-6 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => void handleConfirm()}
-                disabled={!canConfirm}
-                className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-              >
+            <Group gap="sm" align="center">
+              <Button onClick={() => void handleConfirm()} disabled={!canConfirm}>
                 {t('common.confirm')}
-              </button>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="rounded border border-foreground/20 px-4 py-2 text-sm font-medium hover:bg-foreground/5"
-              >
+              </Button>
+              <Button variant="default" onClick={handleReset}>
                 {t('common.cancel')}
-              </button>
+              </Button>
               {!canConfirm && (
-                <p className="text-xs text-red-600">{t('import.requiredFieldsMissing')}</p>
+                <Text size="xs" c="red">
+                  {t('import.requiredFieldsMissing')}
+                </Text>
               )}
-            </div>
-          </div>
-        )}
+            </Group>
+          </Stack>
+        </Paper>
+      )}
 
-        {stage === 'importing' && (
-          <p className="py-8 text-center text-[--color-muted-foreground]">
-            {t('import.importing')}
-          </p>
-        )}
+      {stage === 'importing' && (
+        <Center py="xl">
+          <Text c="dimmed">{t('import.importing')}</Text>
+        </Center>
+      )}
 
-        {stage === 'done' && importResult && (
-          <div className="rounded-lg bg-background p-6 shadow-sm">
-            <ImportResultSummary result={importResult} onReset={handleReset} />
-          </div>
-        )}
-      </main>
-    </div>
+      {stage === 'done' && importResult && (
+        <Paper withBorder radius="md" p="lg">
+          <ImportResultSummary result={importResult} onReset={handleReset} />
+        </Paper>
+      )}
+    </Stack>
   );
 }

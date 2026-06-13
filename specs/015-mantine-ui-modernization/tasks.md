@@ -19,12 +19,12 @@
 
 **Purpose**: Add Mantine to the project and remove Tailwind from the build pipeline. Mantine and Tailwind can coexist temporarily during the migration; Tailwind class names are fully removed in the Polish phase.
 
-- [ ] T001 Add `@mantine/core`, `@mantine/hooks`, `@tabler/icons-react`, `postcss`, `postcss-preset-mantine`, `postcss-simple-vars` to `packages/frontend/package.json` dependencies (run `pnpm install`)
-- [ ] T002 Remove `@tailwindcss/vite` from `devDependencies` and `tailwindcss`, `tailwind-merge`, `class-variance-authority`, `clsx`, `@radix-ui/react-slot` from `dependencies` in `packages/frontend/package.json`
-- [ ] T003 Remove the `tailwindcss()` plugin call from `packages/frontend/vite.config.ts` (keep the `react()` plugin and all other config unchanged)
-- [ ] T004 Create `packages/frontend/postcss.config.cjs` with `postcss-preset-mantine` and `postcss-simple-vars` plugins
-- [ ] T005 Replace `@import "tailwindcss"` and the `@theme` block in `packages/frontend/src/index.css` with `@import "@mantine/core/styles.css"` (retain only non-Tailwind global rules such as `@keyframes nameFlip`)
-- [ ] T006 Wrap the app in `<MantineProvider>` with `localStorageColorSchemeManager({ key: 'pcm-color-scheme' })` and a `<ColorSchemeScript>` in `packages/frontend/src/main.tsx`
+- [X] T001 Add `@mantine/core`, `@mantine/hooks`, `@tabler/icons-react`, `postcss`, `postcss-preset-mantine`, `postcss-simple-vars` to `packages/frontend/package.json` dependencies (run `pnpm install`)
+- [X] T002 Remove `@tailwindcss/vite` from `devDependencies` and `tailwindcss`, `tailwind-merge`, `class-variance-authority`, `clsx`, `@radix-ui/react-slot` from `dependencies` in `packages/frontend/package.json`
+- [X] T003 Remove the `tailwindcss()` plugin call from `packages/frontend/vite.config.ts` (keep the `react()` plugin and all other config unchanged)
+- [X] T004 Create `packages/frontend/postcss.config.cjs` with `postcss-preset-mantine` and `postcss-simple-vars` plugins
+- [X] T005 Replace `@import "tailwindcss"` and the `@theme` block in `packages/frontend/src/index.css` with `@import "@mantine/core/styles.css"` (retain only non-Tailwind global rules such as `@keyframes nameFlip`)
+- [X] T006 Wrap the app in `<MantineProvider>` with `localStorageColorSchemeManager({ key: 'pcm-color-scheme' })` and a `<ColorSchemeScript>` in `packages/frontend/src/main.tsx`
 
 **Checkpoint**: `pnpm --filter frontend dev` starts without errors. Mantine CSS variables are loaded in the browser. The app may look unstyled until components are migrated.
 
@@ -36,12 +36,12 @@
 
 **⚠️ CRITICAL**: US1, US2, US3, US4, and US11 cannot be implemented until this phase is complete.
 
-- [ ] T007 Write failing tests for `AppShell` in `packages/frontend/tests/unit/AppShell.test.tsx` asserting: sidebar renders, nav links exist, children render in main area — confirm tests FAIL before proceeding
-- [ ] T008 Create `packages/frontend/src/components/AppShell/AppShell.tsx` implementing the Mantine `AppShell` wrapper with `AppShell.Navbar` and `AppShell.Main` slots; mount `NavbarSegmented` in the navbar slot and render `children` + `FooterSimple` in the main slot
-- [ ] T009 [P] Create `packages/frontend/src/components/AppShell/AppShell.module.css` with layout styles using Mantine CSS variables
-- [ ] T010 Create placeholder `packages/frontend/src/components/AppShell/NavbarSegmented.tsx` (renders static sidebar shell with no links yet — filled in US1)
-- [ ] T011 Create placeholder `packages/frontend/src/components/AppShell/FooterSimple.tsx` (renders empty footer — filled in US11)
-- [ ] T012 Replace the `<Layout>` component with `<AppShell>` in `packages/frontend/src/main.tsx` for the authenticated route tree; remove `packages/frontend/src/components/Layout.tsx`
+- [X] T007 Write failing tests for `AppShell` in `packages/frontend/tests/unit/AppShell.test.tsx` asserting: sidebar renders, nav links exist, children render in main area — confirm tests FAIL before proceeding
+- [X] T008 Create `packages/frontend/src/components/AppShell/AppShell.tsx` implementing the Mantine `AppShell` wrapper with `AppShell.Navbar` and `AppShell.Main` slots; mount `NavbarSegmented` in the navbar slot and render `children` + `FooterSimple` in the main slot
+- [X] T009 [P] Create `packages/frontend/src/components/AppShell/AppShell.module.css` with layout styles using Mantine CSS variables
+- [X] T010 Create placeholder `packages/frontend/src/components/AppShell/NavbarSegmented.tsx` (renders static sidebar shell with no links yet — filled in US1)
+- [X] T011 Create placeholder `packages/frontend/src/components/AppShell/FooterSimple.tsx` (renders empty footer — filled in US11)
+- [X] T012 Replace the `<Layout>` component with `<AppShell>` in `packages/frontend/src/main.tsx` for the authenticated route tree; remove `packages/frontend/src/components/Layout.tsx`
 
 **Checkpoint**: App loads. Mantine AppShell renders with an empty sidebar and footer. All existing routes navigate correctly. Unit tests in `AppShell.test.tsx` pass.
 
@@ -57,12 +57,12 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T013 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertions: first segment contains Dashboard, Contracts, Account Settings links; clicking each link navigates to the correct route; active link has active styling
+- [X] T013 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertions: first segment contains Dashboard, Contracts, Account Settings links; clicking each link navigates to the correct route; active link has active styling
 
 ### Implementation — US1
 
-- [ ] T014 [US1] Implement `NavbarSegmented` first segment in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx` using `NavLink` components for Dashboard (`/`), Contracts (`/contracts`), Account Settings (`/account`); use `react-router-dom` `useLocation` to detect and apply active state
-- [ ] T015 [US1] Create `packages/frontend/src/components/AppShell/NavbarSegmented.module.css` with link active state styles using `light-dark()` CSS function and Mantine CSS variables
+- [X] T014 [US1] Implement `NavbarSegmented` first segment in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx` using `NavLink` components for Dashboard (`/`), Contracts (`/contracts`), Account Settings (`/account`); use `react-router-dom` `useLocation` to detect and apply active state
+- [X] T015 [US1] Create `packages/frontend/src/components/AppShell/NavbarSegmented.module.css` with link active state styles using `light-dark()` CSS function and Mantine CSS variables
 
 **Checkpoint**: Sidebar shows first segment with three nav links. Clicking any link navigates correctly. Active link is highlighted. All T013 tests pass.
 
@@ -78,11 +78,11 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T016 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertions: admin user sees second segment with Accounts link; regular user does not see second segment
+- [X] T016 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertions: admin user sees second segment with Accounts link; regular user does not see second segment
 
 ### Implementation — US2
 
-- [ ] T017 [US2] Add `useCurrentUser` hook to `NavbarSegmented` in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx`; conditionally render second "Admin" segment with Accounts (`/admin/accounts`) `NavLink` when `user.role === 'ADMIN'`
+- [X] T017 [US2] Add `useCurrentUser` hook to `NavbarSegmented` in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx`; conditionally render second "Admin" segment with Accounts (`/admin/accounts`) `NavLink` when `user.role === 'ADMIN'`
 
 **Checkpoint**: Admin users see the Admin segment. Regular users do not. T016 tests pass.
 
@@ -98,14 +98,14 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T018 Write failing tests for `ThemeToggle` in `packages/frontend/tests/unit/ThemeToggle.test.tsx`: renders moon icon in light mode, sun icon in dark mode, click calls `toggleColorScheme`
-- [ ] T019 Write failing tests for `LanguagePicker` in `packages/frontend/tests/unit/LanguagePicker.test.tsx` (migrated from `LanguageSwitcher.test.tsx`): renders current language, click on another language calls `i18n.changeLanguage`, writes `pcm-lang` to localStorage
+- [X] T018 Write failing tests for `ThemeToggle` in `packages/frontend/tests/unit/ThemeToggle.test.tsx`: renders moon icon in light mode, sun icon in dark mode, click calls `toggleColorScheme`
+- [X] T019 Write failing tests for `LanguagePicker` in `packages/frontend/tests/unit/LanguagePicker.test.tsx` (migrated from `LanguageSwitcher.test.tsx`): renders current language, click on another language calls `i18n.changeLanguage`, writes `pcm-lang` to localStorage
 
 ### Implementation — US3
 
-- [ ] T020 [P] [US3] Implement `ThemeToggle` in `packages/frontend/src/components/AppShell/ThemeToggle.tsx` using `useMantineColorScheme`, `ActionIcon`, `Tooltip` from `@mantine/core` and `IconSun`/`IconMoon` from `@tabler/icons-react`
-- [ ] T021 [P] [US3] Implement `LanguagePicker` in `packages/frontend/src/components/AppShell/LanguagePicker.tsx` using Mantine `Menu` and `UnstyledButton`; preserve existing `pcm-lang` localStorage key and `i18n.changeLanguage()` call; delete `packages/frontend/src/components/LanguageSwitcher.tsx`
-- [ ] T022 [US3] Add Settings area (containing `ThemeToggle` and `LanguagePicker`) to the bottom of `NavbarSegmented` in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx`
+- [X] T020 [P] [US3] Implement `ThemeToggle` in `packages/frontend/src/components/AppShell/ThemeToggle.tsx` using `useMantineColorScheme`, `ActionIcon`, `Tooltip` from `@mantine/core` and `IconSun`/`IconMoon` from `@tabler/icons-react`
+- [X] T021 [P] [US3] Implement `LanguagePicker` in `packages/frontend/src/components/AppShell/LanguagePicker.tsx` using Mantine `Menu` and `UnstyledButton`; preserve existing `pcm-lang` localStorage key and `i18n.changeLanguage()` call; delete `packages/frontend/src/components/LanguageSwitcher.tsx`
+- [X] T022 [US3] Add Settings area (containing `ThemeToggle` and `LanguagePicker`) to the bottom of `NavbarSegmented` in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx`
 
 **Checkpoint**: Settings area visible in sidebar. Theme toggle and language picker work immediately without reload. Preferences persist. T018 and T019 tests pass.
 
@@ -121,11 +121,11 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T023 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertions: user display name shown; Sign Out button triggers sign-out mutation; redirect to `/sign-in`
+- [X] T023 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertions: user display name shown; Sign Out button triggers sign-out mutation; redirect to `/sign-in`
 
 ### Implementation — US4
 
-- [ ] T024 [US4] Add user display name and Sign Out button to `NavbarSegmented` in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx` using `useCurrentUser` and `useSignOut` hooks (same as removed `Layout.tsx`); wire Sign Out to `signOut()` mutation
+- [X] T024 [US4] Add user display name and Sign Out button to `NavbarSegmented` in `packages/frontend/src/components/AppShell/NavbarSegmented.tsx` using `useCurrentUser` and `useSignOut` hooks (same as removed `Layout.tsx`); wire Sign Out to `signOut()` mutation
 
 **Checkpoint**: User display name visible. Sign Out button works. T023 tests pass.
 
@@ -143,12 +143,12 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T025 Update `packages/frontend/tests/unit/SpendingOverview.test.tsx` with failing assertions for the new StatsSegments layout: total spending displayed; category segments rendered (up to 3); zero-contract empty state shows
+- [X] T025 Update `packages/frontend/tests/unit/SpendingOverview.test.tsx` with failing assertions for the new StatsSegments layout: total spending displayed; category segments rendered (up to 3); zero-contract empty state shows
 
 ### Implementation — US5
 
-- [ ] T026 [P] [US5] Rewrite `packages/frontend/src/components/SpendingOverview.tsx` using Mantine `Progress`, `Group`, `Text`, `Paper` to implement the Stats Segments pattern; accept `totalMonthlySpending` and `contractsByCategory` (top 3) as props; add `SpendingOverview.module.css`
-- [ ] T027 [US5] Update `packages/frontend/src/pages/Dashboard.tsx` to pass `contractsByCategory` (sliced to top 3 by `monthlyTotal`) to the updated `SpendingOverview` component; remove the separate `CategoryBreakdown` component call (merged into SpendingOverview); delete `packages/frontend/src/components/CategoryBreakdown.tsx`
+- [X] T026 [P] [US5] Rewrite `packages/frontend/src/components/SpendingOverview.tsx` using Mantine `Progress`, `Group`, `Text`, `Paper` to implement the Stats Segments pattern; accept `totalMonthlySpending` and `contractsByCategory` (top 3) as props; add `SpendingOverview.module.css`
+- [X] T027 [US5] Update `packages/frontend/src/pages/Dashboard.tsx` to pass `contractsByCategory` (sliced to top 3 by `monthlyTotal`) to the updated `SpendingOverview` component; remove the separate `CategoryBreakdown` component call (merged into SpendingOverview); delete `packages/frontend/src/components/CategoryBreakdown.tsx`
 
 **Checkpoint**: Dashboard stats widget renders total spending and top 3 categories. Zero-contract empty state works. T025 tests pass.
 
@@ -164,13 +164,13 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T028 Update `packages/frontend/tests/unit/ContractTable.test.tsx` with failing assertions for Mantine Table pattern: column sort toggle works, provider logo cell renders, sticky header attribute present
+- [X] T028 Update `packages/frontend/tests/unit/ContractTable.test.tsx` with failing assertions for Mantine Table pattern: column sort toggle works, provider logo cell renders, sticky header attribute present
 
 ### Implementation — US6
 
-- [ ] T029 [US6] Rewrite `packages/frontend/src/components/ContractTable.tsx` using Mantine `Table`, `Table.Thead`, `Table.Th`, `Table.Tbody`, `Table.Tr`, `Table.Td`, `UnstyledButton`, `Center` implementing the Table Sort pattern; retain existing sort logic (`sortState`, `handleSort`); add `stickyHeader` prop to `<Table>`; add `ContractTable.module.css`
-- [ ] T030 [P] [US6] Remove `lucide-react` sort icons from `ContractTable.tsx`; replace with Tabler `IconChevronUp`, `IconChevronDown`, `IconSelector` from `@tabler/icons-react`
-- [ ] T031 [US6] Update `packages/frontend/src/pages/ContractList.tsx` to use Mantine layout components (`Container`, `Group`, `Title`, `Button`, `Stack`) replacing Tailwind classes; replace `AnonymizationToggle` button with Mantine `Switch` (per-contract handled in T036)
+- [X] T029 [US6] Rewrite `packages/frontend/src/components/ContractTable.tsx` using Mantine `Table`, `Table.Thead`, `Table.Th`, `Table.Tbody`, `Table.Tr`, `Table.Td`, `UnstyledButton`, `Center` implementing the Table Sort pattern; retain existing sort logic (`sortState`, `handleSort`); add `stickyHeader` prop to `<Table>`; add `ContractTable.module.css`
+- [X] T030 [P] [US6] Remove `lucide-react` sort icons from `ContractTable.tsx`; replace with Tabler `IconChevronUp`, `IconChevronDown`, `IconSelector` from `@tabler/icons-react`
+- [X] T031 [US6] Update `packages/frontend/src/pages/ContractList.tsx` to use Mantine layout components (`Container`, `Group`, `Title`, `Button`, `Stack`) replacing Tailwind classes; replace `AnonymizationToggle` button with Mantine `Switch` (per-contract handled in T036)
 
 **Checkpoint**: Contract table renders with sticky header and sortable columns. Provider logos shown. T028 tests pass.
 
@@ -186,12 +186,12 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T032 Update `packages/frontend/tests/unit/AnonymizationToggle.test.tsx` with failing assertions for Mantine `Switch` element: `aria-checked` state, click toggles, accessible label present
+- [X] T032 Update `packages/frontend/tests/unit/AnonymizationToggle.test.tsx` with failing assertions for Mantine `Switch` element: `aria-checked` state, click toggles, accessible label present
 
 ### Implementation — US7
 
-- [ ] T033 [P] [US7] Rewrite `packages/frontend/src/components/AnonymizationToggle.tsx` using Mantine `Switch` with `thumbIcon` (Custom Switch pattern); preserve `isActive` and `onToggle` props and existing `aria-label`
-- [ ] T034 [US7] Update `packages/frontend/src/pages/AccountSettings.tsx`: add global anonymization Switches Card section using Mantine `Card`, `Switch`, `Group`, `Text` (Switches Card pattern); wire to existing `useAnonymization` hook's global toggle
+- [X] T033 [P] [US7] Rewrite `packages/frontend/src/components/AnonymizationToggle.tsx` using Mantine `Switch` with `thumbIcon` (Custom Switch pattern); preserve `isActive` and `onToggle` props and existing `aria-label`
+- [X] T034 [US7] Update `packages/frontend/src/pages/AccountSettings.tsx`: add global anonymization Switches Card section using Mantine `Card`, `Switch`, `Group`, `Text` (Switches Card pattern); wire to existing `useAnonymization` hook's global toggle
 
 **Checkpoint**: Per-contract switch works. Global anonymization card in Account Settings works. T032 tests pass.
 
@@ -207,13 +207,13 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T035 Update `packages/frontend/tests/unit/ContractForm.test.tsx` with failing assertions for Mantine inputs: `TextInput` variant="filled" rendered, tooltip renders on focus, amount field displays EUR prefix, required field validation present
+- [X] T035 Update `packages/frontend/tests/unit/ContractForm.test.tsx` with failing assertions for Mantine inputs: `TextInput` variant="filled" rendered, tooltip renders on focus, amount field displays EUR prefix, required field validation present
 
 ### Implementation — US8
 
-- [ ] T036 [US8] Rewrite `packages/frontend/src/components/ContractForm.tsx` using Mantine `TextInput`, `Select`, `NumberInput` (variant="filled" for contained style) and `Tooltip` wrapping each field label; use `NumberInput` with `prefix="€"` and `decimalScale={2}` for the amount field; add `ContractForm.module.css`
-- [ ] T037 [P] [US8] Implement Password Strength input in `packages/frontend/src/pages/AccountSettings.tsx`: replace `<input type="password">` with Mantine `PasswordInput` and a `Popover`-based strength indicator (Password Strength pattern) using `useDisclosure` from `@mantine/hooks`
-- [ ] T038 [P] [US8] Implement Password Strength input in `packages/frontend/src/pages/SignIn.tsx` (password field only — full SignIn page migration in US10)
+- [X] T036 [US8] Rewrite `packages/frontend/src/components/ContractForm.tsx` using Mantine `TextInput`, `Select`, `NumberInput` (variant="filled" for contained style) and `Tooltip` wrapping each field label; use `NumberInput` with `prefix="€"` and `decimalScale={2}` for the amount field; add `ContractForm.module.css`
+- [X] T037 [P] [US8] Implement Password Strength input in `packages/frontend/src/pages/AccountSettings.tsx`: replace `<input type="password">` with Mantine `PasswordInput` and a `Popover`-based strength indicator (Password Strength pattern) using `useDisclosure` from `@mantine/hooks`
+- [X] T038 [P] [US8] Implement Password Strength input in `packages/frontend/src/pages/SignIn.tsx` (password field only — full SignIn page migration in US10)
 
 **Checkpoint**: Contract form uses contained inputs with tooltips and EUR formatting. Password fields show strength indicator. T035 tests pass.
 
@@ -229,11 +229,11 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T039 Write failing tests in `packages/frontend/tests/unit/AccountsAdmin.test.tsx`: user rows render with display name, email, role badge; action buttons (invite, archive, reactivate) are present per row
+- [X] T039 Write failing tests in `packages/frontend/tests/unit/AccountsAdmin.test.tsx`: user rows render with display name, email, role badge; action buttons (invite, archive, reactivate) are present per row
 
 ### Implementation — US9
 
-- [ ] T040 [US9] Rewrite `packages/frontend/src/pages/admin/AccountsAdmin.tsx` using Mantine `Table`, `Avatar`, `Badge`, `Group`, `ActionIcon`, `Button` (Users Table pattern); preserve all existing mutations (`useArchiveAccount`, `useReactivateAccount`, `useChangeAccountRole`, `useSendInvitation`); add `AccountsAdmin.module.css`
+- [X] T040 [US9] Rewrite `packages/frontend/src/pages/admin/AccountsAdmin.tsx` using Mantine `Table`, `Avatar`, `Badge`, `Group`, `ActionIcon`, `Button` (Users Table pattern); preserve all existing mutations (`useArchiveAccount`, `useReactivateAccount`, `useChangeAccountRole`, `useSendInvitation`); add `AccountsAdmin.module.css`
 
 **Checkpoint**: Accounts admin page shows users in Users Table style. Actions work as before. T039 tests pass.
 
@@ -249,12 +249,12 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T041 Update `packages/frontend/tests/unit/SignIn.test.tsx` (or create if absent) with failing assertions: form renders without sidebar wrapper, email and password fields present, error message renders on failed login
+- [X] T041 Update `packages/frontend/tests/unit/SignIn.test.tsx` (or create if absent) with failing assertions: form renders without sidebar wrapper, email and password fields present, error message renders on failed login
 
 ### Implementation — US10
 
-- [ ] T042 [US10] Rewrite `packages/frontend/src/pages/SignIn.tsx` using Mantine `Title`, `Text`, `Paper`, `TextInput`, `PasswordInput`, `Button`, `Anchor`, `Container`, `Center` (Authentication Title pattern); retain existing `useSignIn` mutation and error handling; ensure no `<AppShell>` wrapper present; add `SignIn.module.css`
-- [ ] T043 [P] [US10] Similarly update `packages/frontend/src/pages/AcceptInvitation.tsx` to use Mantine form components (`TextInput`, `PasswordInput`, `Button`, `Paper`, `Title`) without sidebar wrapper; retain existing invitation acceptance mutation
+- [X] T042 [US10] Rewrite `packages/frontend/src/pages/SignIn.tsx` using Mantine `Title`, `Text`, `Paper`, `TextInput`, `PasswordInput`, `Button`, `Anchor`, `Container`, `Center` (Authentication Title pattern); retain existing `useSignIn` mutation and error handling; ensure no `<AppShell>` wrapper present; add `SignIn.module.css`
+- [X] T043 [P] [US10] Similarly update `packages/frontend/src/pages/AcceptInvitation.tsx` to use Mantine form components (`TextInput`, `PasswordInput`, `Button`, `Paper`, `Title`) without sidebar wrapper; retain existing invitation acceptance mutation
 
 **Checkpoint**: Sign-in page renders Authentication Title layout. Invalid credentials show inline error. Successful login shows Dashboard with sidebar. T041 tests pass.
 
@@ -270,11 +270,11 @@
 
 > **Write these tests FIRST, confirm they FAIL before implementing**
 
-- [ ] T044 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertion: footer element rendered within `AppShell.Main`
+- [X] T044 Extend `packages/frontend/tests/unit/AppShell.test.tsx` with failing assertion: footer element rendered within `AppShell.Main`
 
 ### Implementation — US11
 
-- [ ] T045 [US11] Implement `FooterSimple` in `packages/frontend/src/components/AppShell/FooterSimple.tsx` using Mantine `Container`, `Group`, `Text` (Footer Simple pattern) with application name and current year; add `FooterSimple.module.css`
+- [X] T045 [US11] Implement `FooterSimple` in `packages/frontend/src/components/AppShell/FooterSimple.tsx` using Mantine `Container`, `Group`, `Text` (Footer Simple pattern) with application name and current year; add `FooterSimple.module.css`
 
 **Checkpoint**: Footer appears on all authenticated pages. T044 tests pass.
 
@@ -284,17 +284,17 @@
 
 **Purpose**: Remove all remaining Tailwind dependencies and class names. Remove shadcn/ui components. Verify zero regressions.
 
-- [ ] T046 Delete `packages/frontend/src/components/ui/` directory (shadcn/ui `card.tsx`, `badge.tsx`); update any remaining imports in components that haven't been migrated yet
-- [ ] T047 [P] Audit all `.tsx` files in `packages/frontend/src/` for remaining Tailwind utility classes (`className="flex items-center ..."`) and replace each with Mantine component props or CSS module classes — run `grep -rn "className=\"" src/ | grep -v "module"` to find candidates
-- [ ] T048 [P] Remove `tailwind-merge`, `class-variance-authority`, `clsx`, `@radix-ui/react-slot` from `packages/frontend/package.json` if not already removed in T002; run `pnpm install`
-- [ ] T049 Migrate `packages/frontend/src/pages/Dashboard.tsx` remaining Tailwind layout classes to Mantine `Container`, `Grid`, `Stack` components
-- [ ] T050 Migrate `packages/frontend/src/pages/ContractList.tsx` remaining Tailwind layout classes to Mantine layout components
-- [ ] T051 Migrate `packages/frontend/src/pages/ContractNew.tsx` and `packages/frontend/src/pages/ContractEdit.tsx` remaining Tailwind layout classes to Mantine layout components
-- [ ] T052 Migrate `packages/frontend/src/pages/ContractImport.tsx` and `packages/frontend/src/components/ImportResultSummary.tsx` remaining Tailwind classes to Mantine components
-- [ ] T053 Migrate remaining components (`ExportMenu.tsx`, `UpcomingRenewals.tsx`, `ExpiredContracts.tsx`, `ProviderLogo.tsx`, `CategoryIcon.tsx`, `ColumnMappingTable.tsx`) from Tailwind classes to Mantine components; update corresponding unit tests
-- [ ] T054 Run `pnpm --filter frontend test` — all unit tests must pass
+- [X] T046 Delete `packages/frontend/src/components/ui/` directory (shadcn/ui `card.tsx`, `badge.tsx`); update any remaining imports in components that haven't been migrated yet
+- [X] T047 [P] Audit all `.tsx` files in `packages/frontend/src/` for remaining Tailwind utility classes (`className="flex items-center ..."`) and replace each with Mantine component props or CSS module classes — run `grep -rn "className=\"" src/ | grep -v "module"` to find candidates
+- [X] T048 [P] Remove `tailwind-merge`, `class-variance-authority`, `clsx`, `@radix-ui/react-slot` from `packages/frontend/package.json` if not already removed in T002; run `pnpm install`
+- [X] T049 Migrate `packages/frontend/src/pages/Dashboard.tsx` remaining Tailwind layout classes to Mantine `Container`, `Grid`, `Stack` components
+- [X] T050 Migrate `packages/frontend/src/pages/ContractList.tsx` remaining Tailwind layout classes to Mantine layout components
+- [X] T051 Migrate `packages/frontend/src/pages/ContractNew.tsx` and `packages/frontend/src/pages/ContractEdit.tsx` remaining Tailwind layout classes to Mantine layout components
+- [X] T052 Migrate `packages/frontend/src/pages/ContractImport.tsx` and `packages/frontend/src/components/ImportResultSummary.tsx` remaining Tailwind classes to Mantine components
+- [X] T053 Migrate remaining components (`ExportMenu.tsx`, `UpcomingRenewals.tsx`, `ExpiredContracts.tsx`, `ProviderLogo.tsx`, `CategoryIcon.tsx`, `ColumnMappingTable.tsx`) from Tailwind classes to Mantine components; update corresponding unit tests
+- [X] T054 Run `pnpm --filter frontend test` — all unit tests must pass
 - [ ] T055 Run `pnpm --filter frontend test:e2e` — all Playwright tests must pass
-- [ ] T056 Run final Tailwind audit: `grep -rn "className=\"" packages/frontend/src/` — verify zero Tailwind utility class strings remain
+- [X] T056 Run final Tailwind audit: `grep -rn "className=\"" packages/frontend/src/` — verify zero Tailwind utility class strings remain
 
 **Checkpoint**: All tests pass. No Tailwind class names remain. App runs cleanly with only Mantine CSS.
 

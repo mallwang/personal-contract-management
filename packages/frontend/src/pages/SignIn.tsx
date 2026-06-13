@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, type Location } from 'react-router-dom';
+import {
+  Stack,
+  TextInput,
+  PasswordInput,
+  Button,
+  Alert,
+  Paper,
+  Title,
+  Center,
+} from '@mantine/core';
 import { AuthError } from '../services/auth';
 import { useSignIn } from '../hooks/useAuth';
 
@@ -36,60 +46,44 @@ export function SignIn() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[--color-muted] p-6">
-      <main className="w-full max-w-sm">
-        <div className="rounded-lg bg-background p-6 shadow-sm">
-          <h1 className="mb-6 text-2xl font-bold tracking-tight">{t('auth.signInTitle')}</h1>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <Center mih="100vh" bg="var(--mantine-color-gray-0)">
+      <Paper withBorder shadow="md" p="xl" w={400} radius="md">
+        <Title order={2} mb="lg" ta="center">
+          {t('auth.signInTitle')}
+        </Title>
+        <form onSubmit={handleSubmit}>
+          <Stack gap="md">
             {errorMessage() && (
-              <p
-                role="alert"
-                className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-              >
+              <Alert role="alert" color="red">
                 {errorMessage()}
-              </p>
+              </Alert>
             )}
 
-            <div className="flex flex-col gap-1">
-              <label htmlFor="email" className="text-sm font-medium">
-                {t('auth.emailLabel')}
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="username"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded border px-3 py-1.5 text-sm"
-              />
-            </div>
+            <TextInput
+              id="email"
+              label={t('auth.emailLabel')}
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-            <div className="flex flex-col gap-1">
-              <label htmlFor="password" className="text-sm font-medium">
-                {t('auth.passwordLabel')}
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="rounded border px-3 py-1.5 text-sm"
-              />
-            </div>
+            <PasswordInput
+              id="password"
+              label={t('auth.passwordLabel')}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="rounded bg-[--color-primary] px-3 py-1.5 text-sm font-medium text-[--color-primary-foreground] disabled:opacity-50"
-            >
+            <Button type="submit" fullWidth loading={isPending}>
               {isPending ? t('auth.submitting') : t('auth.submitLabel')}
-            </button>
-          </form>
-        </div>
-      </main>
-    </div>
+            </Button>
+          </Stack>
+        </form>
+      </Paper>
+    </Center>
   );
 }

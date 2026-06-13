@@ -1,0 +1,26 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.langButton {
+  padding: 2px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--mantine-color-dimmed, #868e96);
+  transition: color 100ms;
+}
+
+.langButton:hover {
+  color: var(--mantine-color-text, inherit);
+}
+
+.langButtonActive {
+  background-color: var(--mantine-color-gray-1, #f1f3f5);
+  color: var(--mantine-color-text, inherit);
+}

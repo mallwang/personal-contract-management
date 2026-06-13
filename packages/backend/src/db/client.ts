@@ -173,6 +173,15 @@ export function runMigrations(instance: Database.Database): void {
 
     console.log('============================================================');
   }
+
+  const hasCancelledAt = instance
+    .prepare<[], { name: string }>(`PRAGMA table_info(invitations)`)
+    .all()
+    .some((col) => col.name === 'cancelled_at');
+
+  if (!hasCancelledAt) {
+    instance.exec(`ALTER TABLE invitations ADD COLUMN cancelled_at TEXT`);
+  }
 }
 
 /**
@@ -189,6 +198,33 @@ export function purgeExpiredArchivedAccounts(instance: Database.Database): numbe
     )
     .run(cutoff);
   return result.changes;
+}
+
+/**
+ * Permanently deletes long-stale terminal and expired-pending invitation rows for storage
+ * hygiene. Mirrors the archived-account purge pattern — runs once at startup.
+ */
+export function purgeStaleInvitations(instance: Database.Database): number {
+  const staleDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const result = instance
+    .prepare(
+      `DELETE FROM invitations WHERE
+         (status IN ('ACCEPTED','CANCELLED','SUPERSEDED') AND created_at < ?)
+         OR (status = 'PENDING' AND expires_at < ?)`,
+    )
+    .run(staleDate, new Date().toISOString());
+  return result.changes;
+}
+
+export interface InvitationRow {
+  token: string;
+  email: string;
+  invited_by: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+  accepted_at: string | null;
+  cancelled_at: string | null;
 }
 
 export interface ContractRow {

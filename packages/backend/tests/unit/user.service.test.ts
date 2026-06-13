@@ -295,6 +295,58 @@ describe('UserService – role changes', () => {
   });
 });
 
+describe('UserService – findByEmail', () => {
+  let db: Database.Database;
+  let service: UserService;
+
+  beforeEach(() => {
+    db = createDb(':memory:');
+    runMigrations(db);
+    db.prepare(`DELETE FROM users WHERE email = 'admin@localhost.local'`).run();
+    service = new UserService(db);
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('returns the active user when found', () => {
+    insertUser(db, { email: 'active@example.test', status: 'ACTIVE' });
+    const result = service.findByEmail('active@example.test');
+    expect(result).not.toBeNull();
+    expect(result?.email).toBe('active@example.test');
+  });
+
+  it('returns null for an unknown email', () => {
+    expect(service.findByEmail('nobody@example.test')).toBeNull();
+  });
+
+  it('does not return archived users by default', () => {
+    insertUser(db, {
+      email: 'gone@example.test',
+      status: 'ARCHIVED',
+      archivedAt: new Date().toISOString(),
+    });
+    expect(service.findByEmail('gone@example.test')).toBeNull();
+  });
+
+  it('returns archived users when includeArchived is true', () => {
+    insertUser(db, {
+      email: 'gone@example.test',
+      status: 'ARCHIVED',
+      archivedAt: new Date().toISOString(),
+    });
+    const result = service.findByEmail('gone@example.test', { includeArchived: true });
+    expect(result).not.toBeNull();
+    expect(result?.email).toBe('gone@example.test');
+  });
+
+  it('matching is case-insensitive', () => {
+    insertUser(db, { email: 'upper@example.test', status: 'ACTIVE' });
+    expect(service.findByEmail('UPPER@EXAMPLE.TEST')).not.toBeNull();
+  });
+});
+
 describe('30-day retention purge (FR-012/FR-013, exercised via db/client)', () => {
   let db: Database.Database;
 

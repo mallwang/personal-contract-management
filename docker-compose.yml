@@ -7,6 +7,13 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_PATH: /data/contracts.db
+      # SMTP configuration for email invitations (all required for invitations to work)
+      # SMTP_HOST: smtp.example.com
+      # SMTP_PORT: 587
+      # SMTP_USER: your-smtp-username
+      # SMTP_PASSWORD: your-smtp-password
+      # SMTP_FROM: noreply@example.com
+      # APP_URL: https://your-app-domain.com
     volumes:
       - ./data:/data
     restart: unless-stopped

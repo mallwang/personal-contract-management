@@ -10,7 +10,9 @@ import { dashboardRoutes } from './routes/dashboard.js';
 import { contractRoutes } from './routes/contracts.js';
 import { authRoutes } from './routes/auth.js';
 import { userRoutes } from './routes/users.js';
+import { invitationRoutes } from './routes/invitations.js';
 import { AuthService, SESSION_COOKIE_NAME, toSessionUser } from './services/auth.service.js';
+import type { MailerService } from './services/mailer.service.js';
 
 export { SESSION_COOKIE_NAME, toSessionUser };
 
@@ -18,19 +20,26 @@ declare module 'fastify' {
   interface FastifyInstance {
     db: Database.Database;
     auth: AuthService;
+    mailer: MailerService | undefined;
   }
   interface FastifyRequest {
     user: SessionUser | null;
   }
 }
 
-function isSignInRoute(method: string, url: string): boolean {
-  return method === 'POST' && url.split('?')[0] === '/api/auth/sign-in';
+const PUBLIC_ROUTES: Array<(method: string, path: string) => boolean> = [
+  (m, p) => m === 'POST' && p === '/api/auth/sign-in',
+  (m, p) => m === 'POST' && /^\/api\/invitations\/[^/]+\/accept$/.test(p),
+];
+
+function isPublicRoute(method: string, url: string): boolean {
+  const path = url.split('?')[0] ?? '';
+  return PUBLIC_ROUTES.some((fn) => fn(method, path));
 }
 
 export async function buildServer(
   db: Database.Database,
-  options: { staticDir?: string } = {},
+  options: { staticDir?: string; mailer?: MailerService } = {},
 ): Promise<FastifyInstance> {
   const fastify = Fastify({ logger: true });
 
@@ -40,6 +49,9 @@ export async function buildServer(
   fastify.decorate('db', db);
   const authService = new AuthService(db);
   fastify.decorate('auth', authService);
+  if (options.mailer) {
+    fastify.decorate('mailer', options.mailer);
+  }
 
   fastify.addHook('onRequest', async (request, reply) => {
     const sessionId = request.cookies[SESSION_COOKIE_NAME];
@@ -47,7 +59,7 @@ export async function buildServer(
     request.user = resolvedUser ? toSessionUser(resolvedUser) : null;
 
     const path = request.url.split('?')[0] ?? '';
-    if (path.startsWith('/api/') && !isSignInRoute(request.method, request.url) && !request.user) {
+    if (path.startsWith('/api/') && !isPublicRoute(request.method, request.url) && !request.user) {
       await reply.status(401).send({
         statusCode: 401,
         error: 'Unauthorized',
@@ -69,6 +81,7 @@ export async function buildServer(
   await fastify.register(userRoutes);
   await fastify.register(dashboardRoutes);
   await fastify.register(contractRoutes);
+  await fastify.register(invitationRoutes);
 
   const staticDir =
     options.staticDir ??

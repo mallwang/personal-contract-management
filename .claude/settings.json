@@ -1,17 +1,24 @@
 {
   "permissions": {
     "allow": [
+      "Bash(ls *)",
+      "Bash(npx tsx *)",
+      "Bash(python3 *)",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "Bash(npm run *)",
+      "Bash(rm -f /tmp/*)",
+      "Bash(git checkout *)",
+      "Bash(git worktree *)",
+      "Bash(pnpm --filter *)",
+      "Bash(npx vitest *)",
       "Bash(pnpm --filter @pcm/backend exec vitest run tests/unit/user.service.test.ts tests/integration/users.route.test.ts tests/integration/auth.route.test.ts)",
       "Bash(pnpm --filter @pcm/backend exec vitest run tests/integration/auth.route.test.ts -t \"returns 401 for an archived account\")",
       "Bash(cp /tmp/debug-archive.mjs ./debug-archive.mjs)",
-      "Bash(npx tsx *)",
       "Bash(grep -rn \"prepare\\(\\\\`SELECT \\\\* FROM users\\\\`\\)\\\\|prepare<\\\\[\\\\], \" packages/backend/src/)",
       "Bash(pnpm --filter @pcm/backend exec vitest run tests/unit/user.service.test.ts -t \"list\\\\\\(\\\\\\) returns every account|refuses to remove the last|refuses to demote the last|ignores archived administrators\")",
-      "Bash(python3 -c ' *)",
       "Bash(pnpm --filter @pcm/frontend exec tsc --noEmit -p tsconfig.json)",
-      "Bash(node -e ' *)",
       "Bash(pnpm --filter @pcm/backend exec vitest run)",
-      "Bash(python3)",
       "Bash(grep -n \"insertContract\\(db, {\" packages/backend/tests/unit/dashboard.service.test.ts packages/backend/tests/unit/contract.service.test.ts)",
       "Bash(pnpm --filter @pcm/backend exec vitest run tests/unit/contract.service.test.ts tests/unit/dashboard.service.test.ts)",
       "Bash(pnpm --filter @pcm/frontend exec vitest run)",
@@ -20,9 +27,7 @@
       "Bash(cp packages/frontend/playwright.config.ts /tmp/playwright.config.ts.bak)",
       "Bash(sed -i \"s|fileURLToPath\\(new URL\\('../../data/test.db', import.meta.url\\)\\)|'/tmp/pcm-e2e-test.db'|\" packages/frontend/playwright.config.ts)",
       "Bash(rm -f /tmp/pcm-e2e-test.db*)",
-      "Bash(git checkout *)",
       "Bash(pnpm --filter @pcm/frontend exec playwright test contracts.spec.ts dashboard.spec.ts exportImport.spec.ts multilanguage.spec.ts -g \"malformed service URL|grouped by category|non-standard columns|Confirm import creates|switching from English|switching back to English|persisted after page reload\")",
-      "Bash(git worktree *)",
       "Bash(sed -i \"s|fileURLToPath\\(new URL\\('../../data/test.db', import.meta.url\\)\\)|'/tmp/pcm-main-e2e-test.db'|\" packages/frontend/playwright.config.ts)",
       "Bash(rm -f /tmp/pcm-main-e2e-test.db*)",
       "Bash(pnpm --filter @pcm/frontend exec playwright test contracts.spec.ts dashboard.spec.ts exportImport.spec.ts multilanguage.spec.ts --project=chromium)",
@@ -48,7 +53,6 @@
       "Bash(sqlite3 /tmp/pcm-quickstart.db \"SELECT sql FROM sqlite_master WHERE type='table' AND name='contracts'\")",
       "Bash(pkill -f \"tsx watch src/index.ts\")",
       "Bash(kill -9 41183 41199 50032 50048)",
-      "Bash(rm -f /tmp/pcm-pre013.db*)",
       "Bash(sqlite3 /tmp/pcm-pre013.db)",
       "Bash(sqlite3 /tmp/pcm-pre013.db \"SELECT count\\(*\\) FROM contracts; SELECT name FROM sqlite_master WHERE type='table';\")",
       "Bash(DATABASE_PATH=/tmp/pcm-pre013.db pnpm --filter @pcm/backend db:migrate)",
@@ -62,7 +66,10 @@
       "Bash(kill -9 51198 51199 51216)",
       "Bash(rm -f /tmp/pcm-quickstart.db* /tmp/pcm-pre013.db* /tmp/jar-*.txt /tmp/quickstart-*.log)",
       "Bash(rm -rf /tmp/pcm-test-*)",
-      "Bash(npm run *)"
+      "Bash(.specify/scripts/bash/setup-tasks.sh --json)",
+      "Bash(sed -n '1,35p' packages/backend/src/db/client.ts)",
+      "Bash(sed -n '178,210p' packages/backend/src/db/client.ts)",
+      "Bash(.specify/extensions/git/scripts/bash/auto-commit.sh after_tasks)"
     ],
     "additionalDirectories": [
       "/tmp"

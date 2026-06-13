@@ -10,6 +10,7 @@ import { ContractNew } from './pages/ContractNew.js';
 import { ContractEdit } from './pages/ContractEdit.js';
 import { ContractImport } from './pages/ContractImport.js';
 import { SignIn } from './pages/SignIn.js';
+import { AcceptInvitation } from './pages/AcceptInvitation.js';
 import { AccountSettings } from './pages/AccountSettings.js';
 import { AccountsAdmin } from './pages/admin/AccountsAdmin.js';
 import { Layout } from './components/Layout.js';
@@ -34,6 +35,7 @@ createRoot(root).render(
       <BrowserRouter>
         <Routes>
           <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/invitations/:token" element={<AcceptInvitation />} />
           <Route
             path="*"
             element={

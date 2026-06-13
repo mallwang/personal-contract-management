@@ -21,6 +21,20 @@ CREATE TABLE IF NOT EXISTS sessions (
   expires_at       TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS invitations (
+  token        TEXT PRIMARY KEY,
+  email        TEXT NOT NULL CHECK(length(email) <= 320),
+  invited_by   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status       TEXT NOT NULL DEFAULT 'PENDING'
+                 CHECK(status IN ('PENDING','ACCEPTED','CANCELLED','SUPERSEDED')),
+  expires_at    TEXT NOT NULL,
+  created_at    TEXT NOT NULL,
+  accepted_at   TEXT,
+  cancelled_at  TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_invitations_email ON invitations(email);
+
 CREATE TABLE IF NOT EXISTS contracts (
   id               TEXT PRIMARY KEY,
   user_id          TEXT REFERENCES users(id) ON DELETE CASCADE,

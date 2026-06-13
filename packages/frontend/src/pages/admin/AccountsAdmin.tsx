@@ -1,46 +1,218 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { Account, Role } from '@pcm/shared';
+import type { Account, Invitation } from '@pcm/shared';
 import { AuthError } from '../../services/auth.js';
 import {
   useAccounts,
-  useCreateAccount,
   useArchiveAccount,
   useReactivateAccount,
   useChangeAccountRole,
 } from '../../hooks/useAccounts.js';
+import {
+  useInvitations,
+  useSendInvitation,
+  useCancelInvitation,
+  useResendInvitation,
+} from '../../hooks/useInvitations.js';
 
-export function AccountsAdmin() {
+function localeDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString();
+  } catch {
+    return iso;
+  }
+}
+
+function InvitationStatusBadge({ invitation }: { invitation: Invitation }) {
   const { t } = useTranslation();
-  const { data: accounts, isLoading, isError } = useAccounts();
-  const { mutate: createAccount, isPending: isCreating, error: createError } = useCreateAccount();
-  const { mutate: archiveAccount, error: archiveError } = useArchiveAccount();
-  const { mutate: reactivateAccount, error: reactivateError } = useReactivateAccount();
-  const { mutate: changeRole, error: roleError } = useChangeAccountRole();
+  const isExpired = invitation.status === 'PENDING' && new Date(invitation.expiresAt) < new Date();
+  if (isExpired)
+    return (
+      <span className="text-[--color-muted-foreground]">{t('accountsAdmin.statusExpired')}</span>
+    );
+  const map: Record<string, string> = {
+    PENDING: t('accountsAdmin.statusPending'),
+    ACCEPTED: t('accountsAdmin.statusAccepted'),
+    CANCELLED: t('accountsAdmin.statusCancelled'),
+    SUPERSEDED: t('accountsAdmin.statusSuperseded'),
+  };
+  return <span>{map[invitation.status] ?? invitation.status}</span>;
+}
 
+function InviteForm() {
+  const { t } = useTranslation();
+  const { mutate: sendInvitation, isPending, error } = useSendInvitation();
   const [email, setEmail] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [role, setRole] = useState<Role>('MEMBER');
-  const [initialPassword, setInitialPassword] = useState('');
-  const [createSuccess, setCreateSuccess] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  function handleCreate(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setCreateSuccess(false);
-    createAccount(
-      { email: email.trim(), displayName: displayName.trim(), role, initialPassword },
+    setSuccess(false);
+    sendInvitation(
+      { email: email.trim() },
       {
         onSuccess: () => {
           setEmail('');
-          setDisplayName('');
-          setRole('MEMBER');
-          setInitialPassword('');
-          setCreateSuccess(true);
+          setSuccess(true);
         },
       },
     );
   }
+
+  function errorMessage(): string | null {
+    if (!error) return null;
+    if (error instanceof AuthError) {
+      if (error.status === 409) return t('accountsAdmin.duplicateEmailError');
+      if (error.status === 502) return t('accountsAdmin.mailerError');
+    }
+    return t('accountsAdmin.inviteError');
+  }
+
+  return (
+    <div className="mb-6 rounded-lg bg-background p-4 shadow-sm">
+      <h2 className="mb-3 text-lg font-semibold">{t('accountsAdmin.inviteTitle')}</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
+      >
+        {errorMessage() && (
+          <p
+            role="alert"
+            className="w-full rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
+            {errorMessage()}
+          </p>
+        )}
+        {success && !error && (
+          <p
+            role="status"
+            className="w-full rounded border border-green-200 bg-green-50 p-3 text-sm text-green-700"
+          >
+            {t('accountsAdmin.inviteSuccess')}
+          </p>
+        )}
+        <div className="flex flex-col gap-1">
+          <label htmlFor="invite-email" className="text-sm font-medium">
+            {t('accountsAdmin.emailLabel')}
+          </label>
+          <input
+            id="invite-email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="rounded border px-3 py-1.5 text-sm"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="rounded bg-[--color-primary] px-4 py-2 text-sm font-medium text-[--color-primary-foreground] disabled:opacity-50"
+        >
+          {isPending ? t('accountsAdmin.inviting') : t('accountsAdmin.inviteButton')}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function InvitationsTable() {
+  const { t } = useTranslation();
+  const { data: invitations, isLoading } = useInvitations();
+  const { mutate: cancelInvitation } = useCancelInvitation();
+  const { mutate: resendInvitation } = useResendInvitation();
+
+  if (isLoading)
+    return (
+      <p className="py-4 text-center text-[--color-muted-foreground]">{t('common.loading')}</p>
+    );
+  if (!invitations || invitations.length === 0) {
+    return (
+      <p className="py-4 text-sm text-[--color-muted-foreground]">
+        {t('accountsAdmin.noInvitations')}
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-lg bg-background p-4 shadow-sm mb-6">
+      <h2 className="mb-3 text-lg font-semibold">{t('accountsAdmin.pendingInvitationsTitle')}</h2>
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b text-[--color-muted-foreground]">
+            <th className="py-2 pr-4 font-medium">{t('accountsAdmin.columnEmail')}</th>
+            <th className="py-2 pr-4 font-medium">{t('accountsAdmin.columnInvitationStatus')}</th>
+            <th className="py-2 pr-4 font-medium">{t('accountsAdmin.columnSentAt')}</th>
+            <th className="py-2 pr-4 font-medium">{t('accountsAdmin.columnDate')}</th>
+            <th className="py-2 pr-4 font-medium">{t('accountsAdmin.columnActions')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invitations.map((inv) => {
+            const isPending = inv.status === 'PENDING';
+            const isExpired = isPending && new Date(inv.expiresAt) < new Date();
+            const canAct = isPending && !isExpired;
+            return (
+              <tr key={inv.token} className="border-b last:border-0">
+                <td className="py-2 pr-4">{inv.email}</td>
+                <td className="py-2 pr-4">
+                  <InvitationStatusBadge invitation={inv} />
+                </td>
+                <td className="py-2 pr-4">{localeDate(inv.createdAt)}</td>
+                <td className="py-2 pr-4">
+                  {inv.status === 'ACCEPTED' && inv.acceptedAt
+                    ? `${t('accountsAdmin.acceptedOn')} ${localeDate(inv.acceptedAt)}`
+                    : inv.status === 'CANCELLED' && inv.cancelledAt
+                      ? `${t('accountsAdmin.withdrawnOn')} ${localeDate(inv.cancelledAt)}`
+                      : `${t('accountsAdmin.expiresOn')} ${localeDate(inv.expiresAt)}`}
+                </td>
+                <td className="py-2 pr-4">
+                  <div className="flex flex-wrap gap-2">
+                    {canAct && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => resendInvitation(inv.token)}
+                          className="rounded border px-2 py-1 text-xs hover:bg-foreground/5"
+                        >
+                          {t('accountsAdmin.resendInviteButton')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => cancelInvitation(inv.token)}
+                          className="rounded border px-2 py-1 text-xs hover:bg-foreground/5"
+                        >
+                          {t('accountsAdmin.cancelInviteButton')}
+                        </button>
+                      </>
+                    )}
+                    {isExpired && (
+                      <button
+                        type="button"
+                        onClick={() => resendInvitation(inv.token)}
+                        className="rounded border px-2 py-1 text-xs hover:bg-foreground/5"
+                      >
+                        {t('accountsAdmin.resendInviteButton')}
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function AccountsAdmin() {
+  const { t } = useTranslation();
+  const { data: accounts, isLoading, isError } = useAccounts();
+  const { mutate: archiveAccount, error: archiveError } = useArchiveAccount();
+  const { mutate: reactivateAccount, error: reactivateError } = useReactivateAccount();
+  const { mutate: changeRole, error: roleError } = useChangeAccountRole();
 
   function actionErrorMessage(error: unknown): string | null {
     if (!error) return null;
@@ -50,14 +222,6 @@ export function AccountsAdmin() {
       }
     }
     return t('accountsAdmin.actionError');
-  }
-
-  function createErrorMessage(): string | null {
-    if (!createError) return null;
-    if (createError instanceof AuthError && createError.status === 409) {
-      return t('accountsAdmin.duplicateEmailError');
-    }
-    return t('accountsAdmin.createError');
   }
 
   function otherActiveAdminExists(account: Account): boolean {
@@ -80,96 +244,8 @@ export function AccountsAdmin() {
           </p>
         </header>
 
-        <div className="mb-6 rounded-lg bg-background p-4 shadow-sm">
-          <h2 className="mb-3 text-lg font-semibold">{t('accountsAdmin.newAccountTitle')}</h2>
-          <form
-            onSubmit={handleCreate}
-            className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
-          >
-            {createErrorMessage() && (
-              <p
-                role="alert"
-                className="w-full rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-              >
-                {createErrorMessage()}
-              </p>
-            )}
-            {createSuccess && !createError && (
-              <p
-                role="status"
-                className="w-full rounded border border-green-200 bg-green-50 p-3 text-sm text-green-700"
-              >
-                {t('accountsAdmin.createSuccess')}
-              </p>
-            )}
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-account-email" className="text-sm font-medium">
-                {t('accountsAdmin.emailLabel')}
-              </label>
-              <input
-                id="new-account-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded border px-3 py-1.5 text-sm"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-account-display-name" className="text-sm font-medium">
-                {t('accountsAdmin.displayNameLabel')}
-              </label>
-              <input
-                id="new-account-display-name"
-                type="text"
-                required
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="rounded border px-3 py-1.5 text-sm"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-account-role" className="text-sm font-medium">
-                {t('accountsAdmin.roleLabel')}
-              </label>
-              <select
-                id="new-account-role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
-                className="rounded border px-3 py-1.5 text-sm"
-              >
-                <option value="MEMBER">{t('accountsAdmin.roleMember')}</option>
-                <option value="ADMIN">{t('accountsAdmin.roleAdmin')}</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-account-password" className="text-sm font-medium">
-                {t('accountsAdmin.initialPasswordLabel')}
-              </label>
-              <input
-                id="new-account-password"
-                type="password"
-                required
-                minLength={8}
-                value={initialPassword}
-                onChange={(e) => setInitialPassword(e.target.value)}
-                className="rounded border px-3 py-1.5 text-sm"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isCreating}
-              className="rounded bg-[--color-primary] px-4 py-2 text-sm font-medium text-[--color-primary-foreground] disabled:opacity-50"
-            >
-              {isCreating ? t('accountsAdmin.creating') : t('accountsAdmin.createButton')}
-            </button>
-          </form>
-        </div>
+        <InviteForm />
+        <InvitationsTable />
 
         {(archiveError || reactivateError || roleError) && (
           <p

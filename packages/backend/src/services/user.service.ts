@@ -109,6 +109,36 @@ export class UserService {
     return 'changed';
   }
 
+  findByEmail(email: string, options?: { includeArchived?: boolean }): UserRow | null {
+    const includeArchived = options?.includeArchived ?? false;
+    const query = includeArchived
+      ? `SELECT * FROM users WHERE email = ? COLLATE NOCASE`
+      : `SELECT * FROM users WHERE email = ? COLLATE NOCASE AND status = 'ACTIVE'`;
+    return this.db.prepare<[string], UserRow>(query).get(email) ?? null;
+  }
+
+  activateFromInvitation(email: string, password: string): UserRow {
+    const { hash, salt } = hashPassword(password);
+    const now = new Date().toISOString();
+    const id = randomUUID();
+    const displayName = email.split('@')[0] ?? email;
+    this.db
+      .prepare(
+        `INSERT INTO users (id, email, display_name, password_hash, password_salt, role, status, created_at, updated_at)
+         VALUES (@id, @email, @display_name, @password_hash, @password_salt, 'MEMBER', 'ACTIVE', @created_at, @updated_at)`,
+      )
+      .run({
+        id,
+        email,
+        display_name: displayName,
+        password_hash: hash,
+        password_salt: salt,
+        created_at: now,
+        updated_at: now,
+      });
+    return this.db.prepare<[string], UserRow>(`SELECT * FROM users WHERE id = ?`).get(id)!;
+  }
+
   private activeAdminCount(): number {
     const row = this.db
       .prepare<
